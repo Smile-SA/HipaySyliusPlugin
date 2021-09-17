@@ -55,7 +55,6 @@ final class CaptureAction implements ActionInterface, GatewayAwareInterface
             }
         } catch (\Exception $exception) {
             $this->logErrors($exception->getMessage());
-            dd($exception);
             return;
         }
 

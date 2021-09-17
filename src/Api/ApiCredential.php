@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Smile\HipaySyliusPlugin\Api;
-
 
 class ApiCredential implements ApiCredentialInterface
 {
