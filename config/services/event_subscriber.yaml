@@ -1,0 +1,7 @@
+services:
+    Smile\HipaySyliusPlugin\EventSubscriber\HipayStoreTokenPaymentEventSubscriber:
+        class: Smile\HipaySyliusPlugin\EventSubscriber\HipayStoreTokenPaymentEventSubscriber
+        arguments:
+            - '@Smile\HipaySyliusPlugin\Context\PaymentContext'
+        tags:
+            - { name: kernel.event_subscriber, event: kernel.controller }

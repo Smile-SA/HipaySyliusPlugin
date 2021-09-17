@@ -1,0 +1,20 @@
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        public: false       # Allows optimizing the container by removing unused services; this also means
+          # fetching services directly from the container via $container->get() won't work.
+        # The best practice is to be explicit about your dependencies anyway.
+        
+    Smile\HipaySyliusPlugin\Controller\:
+        resource: '../src/Controller/'
+        tags: [ 'controller.service_arguments' ]
+        
+imports:
+    - { resource: "services/gateway_factory.yaml" }
+    - { resource: "services/form.yaml" }
+    - { resource: "services/client.yaml" }
+    - { resource: "services/event_subscriber.yaml" }
+    - { resource: "services/context.yaml" }
+    - { resource: "services/payum.yaml" }

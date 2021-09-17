@@ -1,0 +1,12 @@
+smile_hipay_sylius_plugin:
+    ui:
+        hipay_gateway_label: Paiement Hipay
+        hipay_moto_gateway_label: Paiement Hipay Mo/To
+        hipay_oney3_gateway_label: Paiement Hipay Oney 3x sans frais
+        hipay_oney4_gateway_label: Paiement Hipay Oney 4x sans frais
+
+    admin:
+        code_opc: Code OPC
+        fees: Avec Frais
+        cartAmountMin: Cout Minimum panier requis    
+        cartAmountMax: Cout Maximum panier requis

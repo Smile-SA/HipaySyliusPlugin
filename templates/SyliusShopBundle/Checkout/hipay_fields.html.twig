@@ -1,0 +1,47 @@
+<div
+    class="hipay-div-config"
+    data-config-username="{{ apiConfig.username }}"
+    data-config-password="{{ apiConfig.password }}"
+    data-config-stage="{{ apiConfig.stage }}"
+    data-config-locale="{{ apiConfig.locale }}"
+    data-config-gateway="{{ gateway }}"
+></div>
+
+<div id="hipay-form-{{ gateway }}">
+    <div class="hipay-row-{{ gateway }}">
+        <div class="hipay-field-container">
+            <label class="hipay-label" for="hipay-card-number-{{ gateway }}">Numéro de la carte</label>
+            <div class="hipay-field" id="hipay-card-number-{{ gateway }}"></div>
+            <div class="hipay-baseline"></div>
+        </div>
+    </div>
+    <div class="hipay-row">
+        <div class="hipay-field-container">
+            <label class="hipay-label" for="hipay-card-holder-{{ gateway }}">Titulaire de la carte</label>
+            <div class="hipay-field" id="hipay-card-holder-{{ gateway }}"></div>
+            <div class="hipay-baseline"></div>
+        </div>
+    </div>
+    <div class="hipay-row">
+        <div class="hipay-field-container hipay-field-container-half">
+            <label class="hipay-label" for="hipay-date-expiry-{{ gateway }}">Date d'expiration</label>
+            <div class="hipay-field" id="hipay-date-expiry-{{ gateway }}"></div>
+            <div class="hipay-baseline"></div>
+        </div>
+        <div class="hipay-field-container hipay-field-container-half">
+            <label class="hipay-label" for="hipay-cvc-{{ gateway }}">Code sécurité</label>
+            <div class="hipay-field" id="hipay-cvc-{{ gateway }}"></div>
+            <div class="hipay-baseline"></div>
+        </div>
+    </div>
+
+    <div class="hipay-elements-container">
+        <div id="hipay-help-cvc-{{ gateway }}"></div>
+        <div id="hipay-error-message-{{ gateway }}"></div>
+        <div id="hipay-result-{{ gateway }}">
+            <input type="hidden" name="hipay_token_{{ gateway }}" id="hipay-result-token-{{ gateway }}" value="">
+            <input type="hidden" name="hipay_payment_product_{{ gateway }}" id="hipay-result-payment-product-{{ gateway }}" value="">
+        </div>
+    </div>
+</div>
+

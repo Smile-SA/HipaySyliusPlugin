@@ -1,0 +1,31 @@
+{
+    "name": "smile/hipay-sylius-plugin",
+    "description": "A Symfony plugin for Sylius to add payment method Hipay.",
+    "keywords": ["symfony", "plugin", "sylius", "hipay", "smile"],
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Smile",
+            "homepage": "http://www.smile.eu/"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "ext-json": "*",
+        "symfony/framework-bundle": "~4.0",
+        "hipay/hipay-fullservice-sdk-php": "^2.8",
+        "symfony/console": "~4.0",
+        "sylius/sylius": "^1.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "Smile\\HipaySyliusPlugin\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.x-dev"
+        }
+    }
+}

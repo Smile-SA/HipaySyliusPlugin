@@ -1,0 +1,5 @@
+services:
+    Smile\HipaySyliusPlugin\Context\PaymentContext:
+        class: Smile\HipaySyliusPlugin\Context\PaymentContext
+        arguments:
+            - '@session'

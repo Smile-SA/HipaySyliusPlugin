@@ -1,0 +1,14 @@
+services:
+    Smile\HipaySyliusPlugin\Form\Type\HipayConfigurationType:
+        class: Smile\HipaySyliusPlugin\Form\Type\HipayConfigurationType
+        tags:
+            - { name: sylius.gateway_configuration_type, type: hipay_card, label: smile_hipay_sylius_plugin.ui.hipay_gateway_label }
+            - { name: sylius.gateway_configuration_type, type: hipay_moto_card, label: smile_hipay_sylius_plugin.ui.hipay_moto_gateway_label }
+            - { name: form.type }
+
+    Smile\HipaySyliusPlugin\Form\Type\HipayOneyConfigurationType:
+        class: Smile\HipaySyliusPlugin\Form\Type\HipayOneyConfigurationType
+        tags:
+            - { name: sylius.gateway_configuration_type, type: hipay_oney3, label: smile_hipay_sylius_plugin.ui.hipay_oney3_gateway_label }
+            - { name: sylius.gateway_configuration_type, type: hipay_oney4, label: smile_hipay_sylius_plugin.ui.hipay_oney4_gateway_label }
+            - { name: form.type }

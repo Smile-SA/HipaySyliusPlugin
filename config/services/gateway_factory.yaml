@@ -1,0 +1,28 @@
+services:
+    Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory:
+        class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
+        arguments:
+            - Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory
+        tags:
+              - { name: payum.gateway_factory_builder, factory: hipay_card }
+
+    Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory:
+        class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
+        arguments:
+            - Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory
+        tags:
+            - { name: payum.gateway_factory_builder, factory: hipay_moto_card }
+
+    Smile\HipaySyliusPlugin\Payum\Factory\HipayOney3GatewayFactory:
+        class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
+        arguments:
+            - Smile\HipaySyliusPlugin\Payum\Factory\HipayOney3GatewayFactory
+        tags:
+            - { name: payum.gateway_factory_builder, factory: hipay_oney3 }
+
+    Smile\HipaySyliusPlugin\Payum\Factory\HipayOney4GatewayFactory:
+        class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
+        arguments:
+            - Smile\HipaySyliusPlugin\Payum\Factory\HipayOney4GatewayFactory
+        tags:
+            - { name: payum.gateway_factory_builder, factory: hipay_oney4 }

@@ -1,0 +1,37 @@
+services:
+    _defaults:
+        public: true
+
+    _instanceof:
+        # services whose classes are instances of CustomInterface will be tagged automatically
+        Smile\HipaySyliusPlugin\Builder\ApiCredentialBuilderInterface:
+            tags: [ 'api_credential_builder' ]
+            
+    Smile\HipaySyliusPlugin\Builder\ApiCredentialBuilder:
+        class: Smile\HipaySyliusPlugin\Builder\ApiCredentialBuilder
+        arguments:
+            - '%smile_hipay_sylius_plugin.client.username%'
+            - '%smile_hipay_sylius_plugin.client.password%'
+            - '%smile_hipay_sylius_plugin.client.secret_passphrase%'
+            - '%smile_hipay_sylius_plugin.client.stage%'
+            - '%smile_hipay_sylius_plugin.client.locale%'
+
+    Smile\HipaySyliusPlugin\Builder\ApiCredentialMotoBuilder:
+        class: Smile\HipaySyliusPlugin\Builder\ApiCredentialMotoBuilder
+        arguments:
+            - '%smile_hipay_sylius_plugin.client.moto.username%'
+            - '%smile_hipay_sylius_plugin.client.moto.password%'
+            - '%smile_hipay_sylius_plugin.client.moto.secret_passphrase%'
+            - '%smile_hipay_sylius_plugin.client.moto.stage%'
+            - '%smile_hipay_sylius_plugin.client.moto.locale%'
+        
+    Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry:
+        class: Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry
+        arguments:
+            $factories: !tagged_iterator api_credential_builder
+        
+    Smile\HipaySyliusPlugin\Api\CreateTransaction:
+        class: Smile\HipaySyliusPlugin\Api\CreateTransaction
+        arguments:
+            - '@Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry'
+            - '@Smile\HipaySyliusPlugin\Context\PaymentContext'
