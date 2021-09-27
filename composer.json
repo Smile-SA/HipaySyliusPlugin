@@ -11,12 +11,12 @@
         }
     ],
     "require": {
-        "php": ">=7.0",
+        "php": ">=7.4",
         "ext-json": "*",
         "symfony/framework-bundle": "~4.0",
         "hipay/hipay-fullservice-sdk-php": "^2.8",
         "symfony/console": "~4.0",
-        "sylius/sylius": "^1.9"
+        "sylius/sylius": "~1.9"
     },
     "autoload": {
         "psr-4": {
