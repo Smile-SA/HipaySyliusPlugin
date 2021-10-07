@@ -47,43 +47,42 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
         $payment = $request->getModel();
 
         $paymentDetails = $payment->getDetails();
+
         $response = $this->getHttpRequest->query;
         $status = $response['status'] ?? $paymentDetails['status'] ?? null;
 
-        if ($status === HipayStatus::CODE_STATUS_CANCELLED) {
-            $request->markCanceled();
-            $payment->setDetails(array_merge($paymentDetails, ['status' => HipayStatus::CODE_STATUS_CANCELLED]));
+        switch($status)
+        {
+            case HipayStatus::CODE_STATUS_CANCELLED:
+                $request->markCanceled();
+                $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
-            return;
-        }
+                return;
 
-        if ($status === HipayStatus::CODE_STATUS_CAPTURED) {
-            $request->markCaptured();
-            $payment->setDetails(array_merge($paymentDetails, ['status' => HipayStatus::CODE_STATUS_CAPTURED]));
+            case HipayStatus::CODE_STATUS_CAPTURED:
+                $request->markCaptured();
+                $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
-            return;
-        }
+                return;
 
-        if ($status === HipayStatus::CODE_STATUS_EXPIRED) {
-            $request->markExpired();
-            $payment->setDetails(array_merge($paymentDetails, ['status' => HipayStatus::CODE_STATUS_EXPIRED]));
+            case HipayStatus::CODE_STATUS_EXPIRED:
+                $request->markExpired();
+                $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
-            return;
-        }
+                return;
 
-        if ($status === HipayStatus::CODE_STATUS_PENDING && $status === HipayStatus::CODE_STATUS_AUTHORIZED_PENDING ) {
-            $request->markPending();
-            $payment->setDetails(array_merge($paymentDetails, ['status' => HipayStatus::CODE_STATUS_PENDING]));
+            case HipayStatus::CODE_STATUS_BLOCKED:
+                $request->markSuspended();
+                $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
-            return;
-        }
+                return;
 
-        if ($status === HipayStatus::CODE_STATUS_BLOCKED) {
-            $request->markSuspended();
-            $payment->setDetails(array_merge($paymentDetails, ['status' => HipayStatus::CODE_STATUS_BLOCKED]));
+            case HipayStatus::CODE_STATUS_PENDING:
+            case HipayStatus::CODE_STATUS_AUTHORIZED_PENDING:
+                $request->markPending();
+                $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
-
-            return;
+                return;
         }
 
         $request->markFailed();
@@ -92,9 +91,9 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
     public function supports($request): bool
     {
         return
-            $request instanceof GetStatus &&
-            $request->getFirstModel() instanceof PaymentInterface
-            ;
+          $request instanceof GetStatus &&
+          $request->getFirstModel() instanceof PaymentInterface
+          ;
     }
 
     private function clearPaymentContext()

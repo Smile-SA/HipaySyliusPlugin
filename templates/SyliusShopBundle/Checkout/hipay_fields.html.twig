@@ -7,15 +7,15 @@
 # file that was distributed with this source code.
 #}
 <div
-    class="hipay-div-config"
-    data-config-username="{{ apiConfig.username }}"
-    data-config-password="{{ apiConfig.password }}"
-    data-config-stage="{{ apiConfig.stage }}"
-    data-config-locale="{{ apiConfig.locale }}"
-    data-config-gateway="{{ gateway }}"
+        class="hipay-div-config"
+        data-config-username="{{ apiConfig.username }}"
+        data-config-password="{{ apiConfig.password }}"
+        data-config-stage="{{ apiConfig.stage }}"
+        data-config-locale="{{ apiConfig.locale }}"
+        data-config-gateway="{{ gateway }}"
 ></div>
 
-<div id="hipay-form-{{ gateway }}">
+<div id="hipay-form-{{ gateway }}" class="hipay-form" style="display: none;">
     <div class="hipay-row-{{ gateway }}">
         <div class="hipay-field-container">
             <label class="hipay-label" for="hipay-card-number-{{ gateway }}">Numéro de la carte</label>
