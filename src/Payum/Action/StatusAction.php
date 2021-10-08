@@ -55,24 +55,28 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
         {
             case HipayStatus::CODE_STATUS_CANCELLED:
                 $request->markCanceled();
+                $payment->setState(PaymentInterface::STATE_CANCELLED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
                 return;
 
             case HipayStatus::CODE_STATUS_CAPTURED:
                 $request->markCaptured();
+                $payment->setState(PaymentInterface::STATE_COMPLETED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
                 return;
 
             case HipayStatus::CODE_STATUS_EXPIRED:
                 $request->markExpired();
+                $payment->setState(PaymentInterface::STATE_CANCELLED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
                 return;
 
             case HipayStatus::CODE_STATUS_BLOCKED:
                 $request->markSuspended();
+                $payment->setState(PaymentInterface::STATE_FAILED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
                 return;
@@ -80,8 +84,15 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
             case HipayStatus::CODE_STATUS_PENDING:
             case HipayStatus::CODE_STATUS_AUTHORIZED_PENDING:
                 $request->markPending();
+                $payment->setState(PaymentInterface::STATE_AUTHORIZED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
+                return;
 
+            //case HipayStatus::CODE_STATUS_PARTIALLY_REFUNDED: // @todo See how to manage partial refund
+            case HipayStatus::CODE_STATUS_REFUNDED:
+                $request->markRefunded();
+                $payment->setState(PaymentInterface::STATE_REFUNDED);
+                $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
                 return;
         }
 
@@ -91,9 +102,9 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
     public function supports($request): bool
     {
         return
-          $request instanceof GetStatus &&
-          $request->getFirstModel() instanceof PaymentInterface
-          ;
+            $request instanceof GetStatus &&
+            $request->getFirstModel() instanceof PaymentInterface
+            ;
     }
 
     private function clearPaymentContext()

@@ -19,14 +19,22 @@ class ApiCredential implements ApiCredentialInterface
     private string $secretPassphrase;
     private string $stage;
     private string $locale;
+    private string $notifyUrl;
 
-    public function __construct(string $username, string $password, string $secretPassphrase, string $stage, string $locale)
-    {
+    public function __construct(
+        string $username,
+        string $password,
+        string $secretPassphrase,
+        string $stage,
+        string $locale,
+        string $notifyUrl,
+    ) {
         $this->username = $username;
         $this->password = $password;
         $this->secretPassphrase = $secretPassphrase;
         $this->stage = $stage;
         $this->locale = $locale;
+        $this->notifyUrl = $notifyUrl;
     }
 
     public function getUsername(): string
@@ -77,5 +85,21 @@ class ApiCredential implements ApiCredentialInterface
     public function setLocale(string $locale): void
     {
         $this->locale = $locale;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNotifyUrl(): string
+    {
+        return $this->notifyUrl;
+    }
+
+    /**
+     * @param string $notifyUrl
+     */
+    public function setNotifyUrl(string $notifyUrl): void
+    {
+        $this->notifyUrl = $notifyUrl;
     }
 }

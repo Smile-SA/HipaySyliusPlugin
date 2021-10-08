@@ -15,6 +15,9 @@ paymentMethods.forEach((element) => {
       HipayForm.style.display = 'block';
     }
   });
+  if(inputField.checked) {
+    inputField.dispatchEvent(new Event('change'));
+  }
 });
 
 
@@ -84,14 +87,14 @@ configs.forEach((config) => {
     if (paymentMethod === gateway) {
       event.preventDefault();
       cardHipay.getPaymentData().then(
-       function(response) {
-         document.getElementById("hipay-result-token-".concat(gateway)).value = response.token;
-         document.getElementById("hipay-result-payment-product-".concat(gateway)).value = response.payment_product;
-         formPaymentMethod.submit();
-       },
-       function(error) {
-         //TODO error management
-       },
+        function(response) {
+          document.getElementById("hipay-result-token-".concat(gateway)).value = response.token;
+          document.getElementById("hipay-result-payment-product-".concat(gateway)).value = response.payment_product;
+          formPaymentMethod.submit();
+        },
+        function(error) {
+          //TODO error management
+        },
       );
     }
   });

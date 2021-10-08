@@ -21,6 +21,7 @@ use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Reply\HttpResponse;
 use Payum\Core\Request\GetHttpRequest;
 use Payum\Core\Request\Notify;
+use Smile\HipaySyliusPlugin\Exception\HipayException;
 use Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -50,7 +51,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         $details = ArrayObject::ensureArrayObject($request->getModel());
 
         $this->gateway->execute($this->getHttpRequest);
-        $headers = $this->getHttpRequest->headers[self::HEADERS_NAME_SIGNATURE] ?? null;
+        $signature = $this->getHttpRequest->headers[self::HEADERS_NAME_SIGNATURE] ?? null;
 
         /** @var PaymentSecurityToken $token */
         $token = $request->getToken();
@@ -58,7 +59,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
 
         $apiCredentials = $this->apiCredentialRegistry->getApiConfig($gateway);
 
-        if (false == $this->verifySignature($headers, $apiCredentials->getSecretPassphrase())) {
+        if (false == $this->verifySignature($signature, $apiCredentials->getSecretPassphrase())) {
             throw new HttpResponse('The notification is invalid. ', Response::HTTP_BAD_REQUEST);
         }
 
@@ -78,9 +79,31 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
 
     private function verifySignature(string $signature, string $secretPassphrase): bool
     {
-        $string2compute = file_get_contents("php://input"). $secretPassphrase;
-        $computedSignature = sha1($string2compute);
+        $string2compute = file_get_contents("php://input") . $secretPassphrase;
 
-        return $computedSignature === $signature;
+        return hash($this->getHashAlgorithm($signature), $string2compute) === $signature;
+    }
+
+    private function getHashAlgorithm(string $signature): string
+    {
+        /**
+         * You can fin the hash algorithm setting here:
+         * https://stage-merchant.hipay-tpp.com/maccount/ACCOUNT_ID/settings/security
+         * Hipay actually supports: SHA-1, SHA-256, SHA-512
+         */
+        switch (\strlen($signature))
+        {
+            case 40:
+                return 'sha1';
+                break;
+            case 64:
+                return 'sha256';
+                break;
+            case 128:
+                return 'sha512';
+                break;
+            default:
+                throw new HipayException('Unable to determine hash function.');
+        }
     }
 }

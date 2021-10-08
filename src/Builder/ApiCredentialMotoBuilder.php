@@ -23,19 +23,22 @@ class ApiCredentialMotoBuilder implements ApiCredentialBuilderInterface
     private string $secretPassphrase;
     private string $stage;
     private string $locale;
+    private string $notifyUrl;
 
     public function __construct(
         string $apiUsername,
         string $apiPassword,
         string $secretPassphrase,
         string $stage,
-        string $locale
+        string $locale,
+        string $notifyUrl
     ) {
         $this->apiUsername = $apiUsername;
         $this->apiPassword = $apiPassword;
         $this->stage = $stage;
         $this->locale = $locale;
         $this->secretPassphrase = $secretPassphrase;
+        $this->notifyUrl = $notifyUrl;
     }
 
     public function supports(string $gateway): bool
@@ -50,7 +53,8 @@ class ApiCredentialMotoBuilder implements ApiCredentialBuilderInterface
             $this->apiPassword,
             $this->secretPassphrase,
             $this->stage,
-            $this->locale
+            $this->locale,
+            $this->notifyUrl
         );
     }
 }

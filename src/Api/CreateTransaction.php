@@ -78,7 +78,7 @@ final class CreateTransaction
         $orderRequest->tax = $payment->getOrder()->getTaxTotal();
         $orderRequest->ipaddr = '127.0.0.1';
         $orderRequest->language = $payment->getOrder()->getLocaleCode();
-        $orderRequest->notify_url = $payumToken->getAfterUrl();
+        $orderRequest->notify_url = $this->getNotifyUrl($gateway, $payumToken->getAfterUrl());
         $orderRequest->accept_url = $payumToken->getAfterUrl();
         $orderRequest->cancel_url = $payumToken->getAfterUrl();
         $orderRequest->decline_url = $payumToken->getAfterUrl();
@@ -142,7 +142,7 @@ final class CreateTransaction
         $orderRequest->amount = ($payment->getAmount() / 100);
         $orderRequest->shipping = ($payment->getOrder()->getShippingTotal() / 100);
         $orderRequest->tax = $payment->getOrder()->getTaxTotal();
-        $orderRequest->ipaddr = '127.0.0.1';
+        $orderRequest->ipaddr = '127.0.0.1';// @todo Update
         $orderRequest->language = $payment->getOrder()->getLocaleCode();
         if (empty($gatewayConfig['codeOPC'])) {
             throw new HipayException('Unable to find code OPC for Oney payment Method');
@@ -161,9 +161,21 @@ final class CreateTransaction
 
     private function getConfiguration(string $gateway): Configuration
     {
+        /** @var \Smile\HipaySyliusPlugin\Api\ApiCredential $apiCredentials */
         $apiCredentials = $this->apiCredentialRegistry->getApiConfig($gateway);
         return new Configuration(
-            ['apiUsername' => $apiCredentials->getUsername(), 'apiPassword' => $apiCredentials->getPassword()]
+            [
+                'apiUsername' => $apiCredentials->getUsername(),
+                'apiPassword' => $apiCredentials->getPassword(),
+            ]
         );
+    }
+
+    private function getNotifyUrl(string $gateway, ?string $defaultUrl = null): ?string
+    {
+        /** @var \Smile\HipaySyliusPlugin\Api\ApiCredential $apiCredentials */
+        $apiCredentials = $this->apiCredentialRegistry->getApiConfig($gateway);
+
+        return $apiCredentials->getNotifyUrl() ?: $defaultUrl;
     }
 }

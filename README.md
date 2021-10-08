@@ -40,6 +40,7 @@ sylius_hipay:
         api_secret_passphrase: 'Secret Passphrase for api'
         stage: 'stage or prod'
         locale: 'fr'
+        # notify_url: '' # Optional; for development purpose, e.g a link to a requestbin listener.
 
     api_moto:
         api_private_username: 'Username for api Mo/TO'
@@ -47,6 +48,7 @@ sylius_hipay:
         api_secret_passphrase: 'Secret Passphrase for api Mo/TO'
         stage: 'stage or prod'
         locale: 'fr'
+        # notify_url: '' # Optional; for development purpose, e.g a link to a requestbin listener.
 ```
 
 ## Configuration
@@ -57,27 +59,21 @@ Add block javascripts at the end of file after your others overrides blocks
 ```twig
 # templates/bundles/SyliusShopBundle/Order/show.html.twig
 
-{% extends '@!SyliusShop/Order/show.html.twig' %}
-
 {% block javascripts %}
     {{ parent() }}
     <script src="https://libs.hipay.com/js/sdkjs.js"></script>
-    <script src="{{ asset('bundles/smilehipaysyliusplugin/js/hostedfield.js') }}"></script>
+    <script src="{{ asset('bundles/smilehipaysyliusplugin/hostedfield.js') }}"></script>
 {% endblock %}
-
 ```
 
 ```twig
 # templates/bundles/SyliusShopBundle/Checkout/selectPayment.html.twig
 
-{% extends '@!SyliusShop/Checkout/selectPayment.html.twig' %}
-
 {% block javascripts %}
     {{ parent() }}
     <script src="https://libs.hipay.com/js/sdkjs.js"></script>
-    <script src="{{ asset('bundles/smilehipaysyliusplugin/js/hostedfield.js') }}"></script>
+    <script src="{{ asset('bundles/smilehipaysyliusplugin/hostedfield.js') }}"></script>
 {% endblock %}
-
 ```
 
 And you can override this file to activate the hosted field for hipay classic and hipay moto and add restrictions for cartAmount (configured in backoffice)
@@ -107,9 +103,6 @@ And you can override this file to activate the hosted field for hipay classic an
             {% endif %}
             {% if method.gatewayConfig.factoryName == 'hipay_card' %}
                 {{ render(controller('Smile\\HipaySyliusPlugin\\Controller\\HostedFieldController:renderHostedFieldsAction', {'orderId': order.id, 'gateway': 'hipay_card' })) }}
-            {% endif %}
-            {% if method.gatewayConfig.factoryName == 'sylius.pay_pal' %}
-                {{ render(controller('Sylius\\PayPalPlugin\\Controller\\PayPalButtonsController:renderPaymentPageButtonsAction', {'orderId': order.id})) }}
             {% endif %}
         </div>
     </div>
