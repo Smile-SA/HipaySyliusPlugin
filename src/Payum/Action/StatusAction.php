@@ -21,6 +21,8 @@ use Smile\HipaySyliusPlugin\Api\HipayStatus;
 use Smile\HipaySyliusPlugin\Context\PaymentContext;
 use Sylius\Bundle\PayumBundle\Request\GetStatus;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Core\OrderPaymentStates;
+use Sylius\Component\Order\Model\OrderInterface;
 
 final class StatusAction implements ActionInterface, GatewayAwareInterface
 {
@@ -50,11 +52,14 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
 
         $response = $this->getHttpRequest->query;
         $status = $response['status'] ?? $paymentDetails['status'] ?? null;
+        $order = $payment->getOrder();
 
         switch($status)
         {
             case HipayStatus::CODE_STATUS_CANCELLED:
                 $request->markCanceled();
+                $order->setState(OrderInterface::STATE_CANCELLED);
+                $order->setPaymentState(OrderPaymentStates::STATE_CANCELLED);
                 $payment->setState(PaymentInterface::STATE_CANCELLED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
@@ -62,6 +67,8 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
 
             case HipayStatus::CODE_STATUS_CAPTURED:
                 $request->markCaptured();
+                $order->setState(OrderInterface::STATE_NEW);
+                $order->setPaymentState(OrderPaymentStates::STATE_PAID);
                 $payment->setState(PaymentInterface::STATE_COMPLETED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
@@ -69,21 +76,35 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
 
             case HipayStatus::CODE_STATUS_EXPIRED:
                 $request->markExpired();
+                $order->setState(OrderInterface::STATE_CANCELLED);
+                $order->setPaymentState(OrderPaymentStates::STATE_CANCELLED);
                 $payment->setState(PaymentInterface::STATE_CANCELLED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
 
                 return;
 
-            case HipayStatus::CODE_STATUS_BLOCKED:
-                $request->markSuspended();
+            case HipayStatus::CODE_STATUS_REFUSED:
+                $request->markFailed();
+                $order->setState(OrderInterface::STATE_NEW);
+                $order->setPaymentState(OrderPaymentStates::STATE_CANCELLED);
                 $payment->setState(PaymentInterface::STATE_FAILED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
+                return;
 
+            case HipayStatus::CODE_STATUS_BLOCKED:
+            case HipayStatus::CODE_STATUS_DENIED:
+                $request->markCanceled();
+                $order->setState(OrderInterface::STATE_CANCELLED);
+                $order->setPaymentState(OrderPaymentStates::STATE_CANCELLED);
+                $payment->setState(PaymentInterface::STATE_FAILED);
+                $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
                 return;
 
             case HipayStatus::CODE_STATUS_PENDING:
             case HipayStatus::CODE_STATUS_AUTHORIZED_PENDING:
                 $request->markPending();
+                $order->setState(OrderInterface::STATE_NEW);
+                $order->setPaymentState(OrderPaymentStates::STATE_AUTHORIZED);
                 $payment->setState(PaymentInterface::STATE_AUTHORIZED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
                 return;
@@ -91,6 +112,8 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
             //case HipayStatus::CODE_STATUS_PARTIALLY_REFUNDED: // @todo See how to manage partial refund
             case HipayStatus::CODE_STATUS_REFUNDED:
                 $request->markRefunded();
+                $order->setState(OrderInterface::STATE_FULFILLED);
+                $order->setPaymentState(OrderPaymentStates::STATE_REFUNDED);
                 $payment->setState(PaymentInterface::STATE_REFUNDED);
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
                 return;

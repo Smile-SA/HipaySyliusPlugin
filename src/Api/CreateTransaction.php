@@ -29,6 +29,8 @@ use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney4GatewayFactory;
 use Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry;
 use Sylius\Bundle\PayumBundle\Model\PaymentSecurityTokenInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 final class CreateTransaction
 {
@@ -44,11 +46,17 @@ final class CreateTransaction
 
     private ApiCredentialRegistry $apiCredentialRegistry;
     private PaymentContext $paymentContext;
+    private ?Request $request;
 
-    public function __construct(ApiCredentialRegistry $apiCredentialRegistry, PaymentContext $paymentContext)
+    public function __construct(
+        ApiCredentialRegistry $apiCredentialRegistry,
+        PaymentContext $paymentContext,
+        RequestStack $requestStack = null
+    )
     {
         $this->apiCredentialRegistry = $apiCredentialRegistry;
         $this->paymentContext = $paymentContext;
+        $this->request = $requestStack ? $requestStack->getCurrentRequest() : null;
     }
 
     /**
@@ -68,7 +76,7 @@ final class CreateTransaction
         $gatewayClient = new GatewayClient($clientProvider);
 
         $orderRequest = new OrderRequest();
-        $orderRequest->orderid = $payment->getOrder()->getId();
+        $orderRequest->orderid = $payment->getOrder()->getNumber();
         $orderRequest->payment_product = $this->paymentContext->get(PaymentContext::HIPAY_PAYMENT_PRODUCT);
         $orderRequest->description = 'TODO Description';
         $orderRequest->operation = self::OPERATION_SALE;
@@ -76,14 +84,13 @@ final class CreateTransaction
         $orderRequest->amount = ($payment->getAmount() / 100);
         $orderRequest->shipping = ($payment->getOrder()->getShippingTotal() / 100);
         $orderRequest->tax = $payment->getOrder()->getTaxTotal();
-        $orderRequest->ipaddr = '127.0.0.1';
+        $orderRequest->ipaddr = $this->request->getClientIp();
         $orderRequest->language = $payment->getOrder()->getLocaleCode();
         $orderRequest->notify_url = $this->getNotifyUrl($gateway, $payumToken->getAfterUrl());
         $orderRequest->accept_url = $payumToken->getAfterUrl();
         $orderRequest->cancel_url = $payumToken->getAfterUrl();
         $orderRequest->decline_url = $payumToken->getAfterUrl();
         $orderRequest->pending_url = $payumToken->getAfterUrl();
-
 
         $paymentMethod = new CardTokenPaymentMethod();
         $paymentMethod->cardtoken = $this->paymentContext->get(PaymentContext::HIPAY_TOKEN);
@@ -121,7 +128,7 @@ final class CreateTransaction
         $gatewayClient = new GatewayClient($clientProvider);
 
         $orderRequest = new OrderRequest();
-        $orderRequest->orderid = $payment->getOrder()->getId();
+        $orderRequest->orderid = $payment->getOrder()->getNumber();
         if (!isset($gatewayConfig['fees'])) {
             throw new HipayException('Unable to find fees information for Oney payment Method');
         }

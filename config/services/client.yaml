@@ -37,3 +37,4 @@ services:
         arguments:
             - '@Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry'
             - '@Smile\HipaySyliusPlugin\Context\PaymentContext'
+            - '@request_stack'

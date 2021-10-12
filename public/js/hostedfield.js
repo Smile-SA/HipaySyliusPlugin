@@ -1,5 +1,5 @@
 const configs = document.getElementsByClassName('hipay-div-config');
-const paymentMethods = document.querySelectorAll('#sylius-payment-methods form .items > .item');
+const paymentMethods = document.querySelectorAll('form[name="sylius_checkout_select_payment"] .items > .item');
 
 paymentMethods.forEach((element) => {
   const inputField = element.querySelector('.field input[type="radio"]');
@@ -71,17 +71,15 @@ configs.forEach((config) => {
     },
   };
 
+
   // Init the hostedfields card
   const cardHipay = hipay.create('card', configCardHipay);
   const formPaymentMethod = document.getElementsByName('sylius_checkout_select_payment')[0];
   formPaymentMethod.addEventListener('submit', function(event) {
     let paymentMethod = '';
 
-    if (document.querySelector('input[name="sylius_checkout_select_payment[payments][0][method]"]') !== null) {
-      paymentMethod = document.querySelector('input[name="sylius_checkout_select_payment[payments][0][method]"]:checked').value;
-    }
-    if (document.querySelector('input[name="sylius_checkout_select_payment[payments][1][method]"]') !== null) {
-      paymentMethod = document.querySelector('input[name="sylius_checkout_select_payment[payments][1][method]"]:checked').value;
+    if (document.querySelector('input[name^="sylius_checkout_select_payment[payments]"][type="radio"]') !== null) {
+      paymentMethod = document.querySelector('input[name^="sylius_checkout_select_payment[payments]"][type="radio"]:checked').value;
     }
 
     if (paymentMethod === gateway) {
