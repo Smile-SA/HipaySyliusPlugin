@@ -27,14 +27,14 @@ class ApiCredentialRegistry
     }
 
     /**
-     * @param string $gateway
+     * @param string $gatewayFactory
      *
      * @return null|ApiCredentialInterface
      */
-    public function getApiConfig(string $gateway): ?ApiCredentialInterface
+    public function getApiConfig(string $gatewayFactory): ?ApiCredentialInterface
     {
         foreach ($this->factories as $factory) {
-            if ($factory->supports($gateway)) {
+            if ($factory->supports($gatewayFactory)) {
                 return $factory->create();
             }
         }

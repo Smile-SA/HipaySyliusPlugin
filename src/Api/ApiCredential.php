@@ -27,7 +27,7 @@ class ApiCredential implements ApiCredentialInterface
         string $secretPassphrase,
         string $stage,
         string $locale,
-        string $notifyUrl,
+        string $notifyUrl
     ) {
         $this->username = $username;
         $this->password = $password;

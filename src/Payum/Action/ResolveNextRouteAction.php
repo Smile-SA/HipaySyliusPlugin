@@ -15,6 +15,8 @@ namespace Smile\HipaySyliusPlugin\Payum\Action;
 use Payum\Core\Action\ActionInterface;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory;
+use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney3GatewayFactory;
+use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney4GatewayFactory;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfigInterface;
 use Sylius\Bundle\PayumBundle\Request\ResolveNextRoute;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -54,14 +56,24 @@ final class ResolveNextRouteAction implements ActionInterface
         $model = $request->getFirstModel();
         /** @var PaymentMethodInterface $paymentMethod */
         $paymentMethod = $model->getMethod();
-        /** @var GatewayConfigInterface $gatewayConfig */
-        $gatewayConfig = $paymentMethod->getGatewayConfig();
+        try{
+            /**
+             * @see GatewayConfigInterface
+             * method getFactoryName()
+             * will be soon removed
+             */
+            $gatewayfactory = $paymentMethod->getGatewayConfig()->getFactoryName();
+        } catch (\Error $e){
+            $gatewayfactory = $paymentMethod->getGatewayConfig()->getConfig()['factory_name'];
+        }
 
         return in_array(
-            $gatewayConfig->getGatewayName(),
+            $gatewayfactory,
             [
                 HipayCardGatewayFactory::FACTORY_NAME,
-                HipayMotoCardGatewayFactory::FACTORY_NAME
+                HipayMotoCardGatewayFactory::FACTORY_NAME,
+                HipayOney3GatewayFactory::FACTORY_NAME,
+                HipayOney4GatewayFactory::FACTORY_NAME,
             ]
         );
     }

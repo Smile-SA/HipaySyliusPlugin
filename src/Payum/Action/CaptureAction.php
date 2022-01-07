@@ -18,6 +18,7 @@ use Payum\Core\Action\ActionInterface;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
+use Payum\Core\Model\GatewayConfigInterface;
 use Payum\Core\Reply\HttpPostRedirect;
 use Payum\Core\Request\Capture;
 use Psr\Log\LoggerInterface;
@@ -54,14 +55,30 @@ final class CaptureAction implements ActionInterface, GatewayAwareInterface
         $paymentMethod = $payment->getMethod();
         $gatewayConfig = $paymentMethod->getGatewayConfig();
 
+/*        dump($gatewayConfig->getConfig());
+        dump($gatewayConfig->getFactoryName());
+        dump($gatewayConfig);*/
+
         /** @var PaymentSecurityToken $token */
         $token = $request->getToken();
         $gateway = $token->getGatewayName();
+
+        try{
+            /**
+             * @see GatewayConfigInterface
+             * method getFactoryName()
+             * will be soon removed
+             */
+            $gatewayfactory = $gatewayConfig->getFactoryName();
+        } catch (\Error $e){
+            $gatewayfactory = $gatewayConfig->getConfig()['factory_name'];
+        }
+
         try {
-            if ($gateway === HipayOney3GatewayFactory::FACTORY_NAME || $gateway === HipayOney4GatewayFactory::FACTORY_NAME) {
-                $transaction = $this->createTransaction->createOney($payment, $gateway, $gatewayConfig->getConfig());
+            if ($gatewayfactory === HipayOney3GatewayFactory::FACTORY_NAME || $gatewayfactory === HipayOney4GatewayFactory::FACTORY_NAME) {
+                $transaction = $this->createTransaction->createOney($payment, $gatewayfactory, $gatewayConfig->getConfig(), $token);
             } else {
-                $transaction = $this->createTransaction->create($payment, $token);
+                $transaction = $this->createTransaction->create($payment, $gatewayfactory, $token);
             }
         } catch (\Exception $exception) {
             $this->logErrors($exception->getMessage());
