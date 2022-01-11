@@ -80,7 +80,7 @@ final class CaptureAction implements ActionInterface, GatewayAwareInterface
             } else {
                 $transaction = $this->createTransaction->create($payment, $gatewayfactory, $token);
             }
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             $this->logErrors($exception->getMessage());
             return;
         }

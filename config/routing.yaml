@@ -3,3 +3,19 @@ sylius_hipay_plugin_notify_generic:
     methods: [GET, POST]
     defaults:
         _controller: Smile\HipaySyliusPlugin\Controller\NotifyController::doAction
+sylius_hipay_oney_iframe:
+    path: /hipay/profile/edit
+    methods: [GET, PUT]
+    defaults:
+        _controller: sylius.controller.customer:updateAction
+        _sylius:
+            template: "@SmileHipaySyliusPlugin/SyliusShopBundle/Checkout/hipay_oney.html.twig"
+            form: Smile\HipaySyliusPlugin\Form\Type\HipayCustomerProfileType
+            repository:
+                method: find
+                arguments:
+                    - "expr:service('sylius.context.customer').getCustomer()"
+            redirect:
+                route: sylius_hipay_oney_iframe
+                parameters: {}
+

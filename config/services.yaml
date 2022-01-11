@@ -10,7 +10,13 @@ services:
     Smile\HipaySyliusPlugin\Controller\:
         resource: '../src/Controller/'
         tags: [ 'controller.service_arguments' ]
-        
+    sylius.form.type.hipay_customer_profile:
+        class: Smile\HipaySyliusPlugin\Form\Type\HipayCustomerProfileType
+        arguments:
+            - "%sylius.model.customer.class%"
+            - "%sylius.form.type.sylius_hipay_customer_profile.validation_groups%"
+        tags:
+            - { name: form.type }
 imports:
     - { resource: "services/gateway_factory.yaml" }
     - { resource: "services/form.yaml" }
@@ -18,3 +24,5 @@ imports:
     - { resource: "services/event_subscriber.yaml" }
     - { resource: "services/context.yaml" }
     - { resource: "services/payum.yaml" }
+parameters:
+    sylius.form.type.sylius_hipay_customer_profile.validation_groups: [sylius, sylius_customer_profile, hipay]

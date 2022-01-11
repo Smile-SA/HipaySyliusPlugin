@@ -12,15 +12,17 @@ declare(strict_types=1);
 
 namespace Smile\HipaySyliusPlugin\Controller;
 
+use Smile\HipaySyliusPlugin\Form\Type\HipayOneyRequiredFieldsType;
 use Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Sylius\PayPalPlugin\Processor\LocaleProcessorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment;
 
-final class HostedFieldController
+final class HostedFieldController extends AbstractController
 {
     private Environment $twig;
     private ChannelContextInterface $channelContext;
@@ -45,7 +47,7 @@ final class HostedFieldController
     public function renderHostedFieldsAction(Request $request): Response
     {
         $gateway = $request->attributes->get('gateway') ?? null;
-        if (null ===$gateway) {
+        if (null === $gateway) {
             throw new \LogicException('Unable to find gateway in request');
         }
 
@@ -62,6 +64,37 @@ final class HostedFieldController
                             'password' => $config->getPassword(),
                             'stage' => $config->getStage(),
                             'locale' => $config->getLocale(),
+                        ],
+                    ]
+                )
+            );
+        } catch (\InvalidArgumentException $exception) {
+            return new Response('');
+        }
+    }
+
+    public function renderOneyValidationForm(Request $request): Response
+    {
+        $gateway = $request->attributes->get('gateway') ?? null;
+        $order = $request->attributes->get('order') ?? null;
+        if (null === $gateway) {
+            throw new \LogicException('Unable to find gateway in request');
+        }
+
+        $form = $this->createForm(HipayOneyRequiredFieldsType::class, $order->getCustomer());
+        try {
+            return new Response(
+                $this->twig->render(
+                    '@SmileHipaySyliusPlugin/SyliusShopBundle/Checkout/hipay_oney.html.twig',
+                    [
+                        'locale' => $this->localeProcessor->process($this->localeContext->getLocaleCode()),
+                        'gateway' => $gateway,
+                        'form' => $form->createView(),
+                        'apiConfig' => [
+                            'username' => null,
+                            'password' => null,
+                            'stage' => null,
+                            'locale' => null,
                         ],
                     ]
                 )

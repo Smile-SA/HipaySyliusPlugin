@@ -37,6 +37,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Webmozart\Assert\Assert;
 
+/**
+ * @see https://github.com/hipay/openapi-hipay/blob/master/enterprise/gateway.yaml
+ * for transaction request fields
+ */
 final class CreateTransaction
 {
     private const ECI_ECOMMERCE_SSL_TLS = 7;
