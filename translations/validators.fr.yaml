@@ -1,0 +1,7 @@
+smile_hipay_sylius_plugin:
+    customer:
+        phoneNumber:
+            not_blank: Le téléphone ne doit pas être vide
+        birthday:
+            not_blank: La date de naissance ne doit pas être vide
+            underage: Vous devez avoir au moins 18 ans

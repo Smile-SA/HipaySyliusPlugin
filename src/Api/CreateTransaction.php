@@ -24,8 +24,10 @@ use HiPay\Fullservice\Gateway\Request\PaymentMethod\XTimesCreditCardPaymentMetho
 use HiPay\Fullservice\HTTP\Configuration\Configuration;
 use HiPay\Fullservice\HTTP\SimpleHTTPClient;
 use HiPay\Fullservice\Model\AbstractModel;
+use Payum\Core\Reply\HttpPostRedirect;
 use Smile\HipaySyliusPlugin\Context\PaymentContext;
 use Smile\HipaySyliusPlugin\Exception\HipayException;
+use Smile\HipaySyliusPlugin\Oney\OneyCustomerValidator;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney3GatewayFactory;
@@ -35,6 +37,7 @@ use Sylius\Bundle\PayumBundle\Model\PaymentSecurityTokenInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 use Webmozart\Assert\Assert;
 
 /**
@@ -56,16 +59,19 @@ final class CreateTransaction
     private ApiCredentialRegistry $apiCredentialRegistry;
     private PaymentContext $paymentContext;
     private ?Request $request;
+    protected OneyCustomerValidator $customerValidator;
 
     public function __construct(
         ApiCredentialRegistry $apiCredentialRegistry,
         PaymentContext $paymentContext,
-        RequestStack $requestStack = null
+        RequestStack $requestStack = null,
+        OneyCustomerValidator $customerValidator
     )
     {
         $this->apiCredentialRegistry = $apiCredentialRegistry;
         $this->paymentContext = $paymentContext;
         $this->request = $requestStack ? $requestStack->getCurrentRequest() : null;
+        $this->customerValidator = $customerValidator;
     }
 
     /**
@@ -132,6 +138,8 @@ final class CreateTransaction
     public function createOney(PaymentInterface $payment, string $gatewayFactory, array $gatewayConfig, PaymentSecurityTokenInterface $payumToken)
     {
         $config = $this->getConfiguration($gatewayFactory);
+
+        dd($config);
         $clientProvider = new SimpleHTTPClient($config);
         $gatewayClient = new GatewayClient($clientProvider);
         $order = $payment->getOrder();
@@ -144,10 +152,26 @@ final class CreateTransaction
         Assert::notNull($shippingAddress, 'Shipping address must not be null');
         Assert::notNull($billingAddress, 'Billing address not be null');
 
+        if(!$this->customerValidator->isValid($customer))
+        {
+            $errors = [];
+            /** @var ConstraintViolationInterface $error */
+            foreach ($this->customerValidator->getValidationErrors($customer) as $error) {
+                $errors[] = $error->getMessage();
+            }
+            throw new HipayException(
+                sprintf(
+                    'Customer #%d profile is invalid, the following errors occurred: %s',
+                    $customer->getId(),
+                    implode(', ', $errors)
+                )
+            );
+        }
+
         $orderRequest = new OrderRequest();
         $orderRequest->eci = 7;
         $orderRequest->cid = $customer->getId();
-        $orderRequest->orderid = mt_rand(1000, 99999); //$order->getNumber();
+        $orderRequest->orderid = $order->getNumber();
         $orderRequest->description = 'Order #' . $order->getNumber();// @todo translate
         $orderRequest->operation = self::OPERATION_SALE;
         $orderRequest->currency = $payment->getCurrencyCode();
@@ -191,6 +215,12 @@ final class CreateTransaction
 
         $basket = new Cart();
         $item = new Item();
+        /**
+         * @todo May we want to be more specific
+         * and list all products precisely ?
+         * This would be great but its
+         * open to discussion with Hipay
+         */
         $item->setUnitPrice((float) $order->getTotal()/100);
         $item->setTotalAmount((float) $order->getTotal()/100);
         $item->setName('Order #' . $order->getNumber());// @todo translate
@@ -227,10 +257,14 @@ final class CreateTransaction
 
         $xTimesCreditCardPaymentMethod = new XTimesCreditCardPaymentMethod();
         $xTimesCreditCardPaymentMethod->shipto_gender = strtoupper($customer->getGender());
-        $xTimesCreditCardPaymentMethod->delivery_method = ['mode' => 'CARRIER', 'shipping' => 'STANDARD'];
         $xTimesCreditCardPaymentMethod->shipto_phone = $customer->getPhoneNumber();
         $xTimesCreditCardPaymentMethod->shipto_msisdn = $customer->getPhoneNumber();
-        $xTimesCreditCardPaymentMethod->delivery_date = '2022-02-20';
+
+        /**
+         * @todo Get somehow real carrier information ?
+         */
+        $xTimesCreditCardPaymentMethod->delivery_method = ['mode' => 'CARRIER', 'shipping' => 'STANDARD'];
+        $xTimesCreditCardPaymentMethod->delivery_date = (new \DateTime('+1 week'))->format('Y-m-d');
 
         $orderRequest->paymentMethod = $xTimesCreditCardPaymentMethod;
 

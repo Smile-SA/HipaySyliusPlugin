@@ -55,7 +55,7 @@ final class HostedFieldController extends AbstractController
         try {
             return new Response(
                 $this->twig->render(
-                    '@SmileHipaySyliusPlugin/SyliusShopBundle/Checkout/hipay_fields.html.twig',
+                    '@SmileHipaySyliusPlugin/Checkout/hipay_hosted_fields.html.twig',
                     [
                         'locale' => $this->localeProcessor->process($this->localeContext->getLocaleCode()),
                         'gateway' => $gateway,
@@ -64,37 +64,6 @@ final class HostedFieldController extends AbstractController
                             'password' => $config->getPassword(),
                             'stage' => $config->getStage(),
                             'locale' => $config->getLocale(),
-                        ],
-                    ]
-                )
-            );
-        } catch (\InvalidArgumentException $exception) {
-            return new Response('');
-        }
-    }
-
-    public function renderOneyValidationForm(Request $request): Response
-    {
-        $gateway = $request->attributes->get('gateway') ?? null;
-        $order = $request->attributes->get('order') ?? null;
-        if (null === $gateway) {
-            throw new \LogicException('Unable to find gateway in request');
-        }
-
-        $form = $this->createForm(HipayOneyRequiredFieldsType::class, $order->getCustomer());
-        try {
-            return new Response(
-                $this->twig->render(
-                    '@SmileHipaySyliusPlugin/SyliusShopBundle/Checkout/hipay_oney.html.twig',
-                    [
-                        'locale' => $this->localeProcessor->process($this->localeContext->getLocaleCode()),
-                        'gateway' => $gateway,
-                        'form' => $form->createView(),
-                        'apiConfig' => [
-                            'username' => null,
-                            'password' => null,
-                            'stage' => null,
-                            'locale' => null,
                         ],
                     ]
                 )

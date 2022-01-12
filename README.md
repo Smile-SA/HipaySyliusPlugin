@@ -34,6 +34,7 @@ In the second node called `api_moto`, you must fill in the Mo/To account credent
 # config/rpackages/sylius_hipay.yaml
 
 sylius_hipay:
+    # The "api" key works for credit cards (as hosted field) but also for paiement 3x/4x
     api:
         api_private_username: 'Username for api'
         api_private_password: 'Password for api'
@@ -42,6 +43,7 @@ sylius_hipay:
         locale: 'fr'
         # notify_url: '' # Optional; for development purpose, e.g a link to a requestbin listener.
 
+    # The "api_moto" key is a dedicated creddential for Mo/To paiements
     api_moto:
         api_private_username: 'Username for api Mo/TO'
         api_private_password: 'Password for api Mo/TO'
@@ -98,11 +100,25 @@ And you can override this file to activate the hosted field for hipay classic an
                     <p>{{ method.description }}</p>
                 </div>
             {% endif %}
-            {% if method.gatewayConfig.factoryName == 'hipay_moto_card' %}
-                {{ render(controller('Smile\\HipaySyliusPlugin\\Controller\\HostedFieldController:renderHostedFieldsAction', {'orderId': order.id, 'gateway': 'hipay_moto_card' })) }}
+            {% if method.gatewayConfig.factoryName == constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayMotoCardGatewayFactory::FACTORY_NAME") %}
+                {{ render(controller('Smile\\HipaySyliusPlugin\\Controller\\HostedFieldController:renderHostedFieldsAction', {
+                    'orderId': order.id, 'gateway': method.gatewayConfig.factoryName
+                })) }}
             {% endif %}
-            {% if method.gatewayConfig.factoryName == 'hipay_card' %}
-                {{ render(controller('Smile\\HipaySyliusPlugin\\Controller\\HostedFieldController:renderHostedFieldsAction', {'orderId': order.id, 'gateway': 'hipay_card' })) }}
+            {% if method.gatewayConfig.factoryName == constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayCardGatewayFactory::FACTORY_NAME") %}
+                {{ render(controller('Smile\\HipaySyliusPlugin\\Controller\\HostedFieldController:renderHostedFieldsAction', {
+                    'orderId': order.id, 'gateway': constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayCardGatewayFactory::FACTORY_NAME")
+                })) }}
+            {% endif %}
+            {% if method.gatewayConfig.factoryName == constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayOney3GatewayFactory::FACTORY_NAME")
+                or method.gatewayConfig.factoryName == constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayOney4GatewayFactory::FACTORY_NAME")
+            %}
+                {{ render(controller('Smile\\HipaySyliusPlugin\\Controller\\OneyCustomerController:renderOneyCustomerIframe', {
+                    'gateway': method.gatewayConfig.factoryName
+                })) }}
+            {% endif %}
+            {% if method.gatewayConfig.factoryName == 'sylius.pay_pal' %}
+                {{ render(controller('Sylius\\PayPalPlugin\\Controller\\PayPalButtonsController:renderPaymentPageButtonsAction', {'orderId': order.id})) }}
             {% endif %}
         </div>
     </div>

@@ -10,6 +10,9 @@ smile_hipay_sylius_plugin:
         hipay_moto_gateway_label: Paiement Hipay Mo/To
         hipay_oney3_gateway_label: Paiement Hipay Oney 3x sans frais
         hipay_oney4_gateway_label: Paiement Hipay Oney 4x sans frais
+        oney:
+            form_review_warning: Vérifiez l'exactitude des données saisies ci-dessous afin de procéder au paiement échelonné, le cas échéant merci de les mettre à jour.
+            email_link: Vous pouvez modifier votre email dans %link_start% votre profil %link_end%.
 
     admin:
         code_opc: Code OPC

@@ -1,0 +1,12 @@
+services:
+    _defaults:
+        public: true
+        autowire: true
+
+    _instanceof:
+        # services whose classes are instances of CustomInterface will be tagged automatically
+        Smile\HipaySyliusPlugin\Builder\ApiCredentialBuilderInterface:
+            tags: [ 'api_credential_builder' ]
+            
+    Smile\HipaySyliusPlugin\Oney\OneyCustomerValidator:
+        class: Smile\HipaySyliusPlugin\Oney\OneyCustomerValidator

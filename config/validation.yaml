@@ -2,9 +2,14 @@ Sylius\Component\Customer\Model\Customer:
     properties:
         birthday:
             - NotBlank: # @todo Make YY -18 verification
-                  message: smile_hipay_sylius_plugin.validation.customer.birthday.not_blank
+                  message: smile_hipay_sylius_plugin.customer.birthday.not_blank
                   groups: [hipay]
+            - LessThanOrEqual:
+                  value: -18 years
+                  message: smile_hipay_sylius_plugin.customer.birthday.underage
+                  groups: [hipay]
+
         phoneNumber:
             - NotBlank:
-                  message: smile_hipay_sylius_plugin.validation.customer.phoneNumber.not_blank
+                  message: smile_hipay_sylius_plugin.customer.phoneNumber.not_blank
                   groups: [hipay]

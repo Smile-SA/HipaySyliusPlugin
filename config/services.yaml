@@ -24,5 +24,7 @@ imports:
     - { resource: "services/event_subscriber.yaml" }
     - { resource: "services/context.yaml" }
     - { resource: "services/payum.yaml" }
+    - { resource: "services/twig.yaml" }
+    - { resource: "services/validator.yaml" }
 parameters:
     sylius.form.type.sylius_hipay_customer_profile.validation_groups: [sylius, sylius_customer_profile, hipay]

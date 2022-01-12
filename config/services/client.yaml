@@ -38,3 +38,4 @@ services:
             - '@Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry'
             - '@Smile\HipaySyliusPlugin\Context\PaymentContext'
             - '@request_stack'
+            - '@Smile\HipaySyliusPlugin\Oney\OneyCustomerValidator'

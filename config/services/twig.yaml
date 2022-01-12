@@ -1,0 +1,8 @@
+services:
+    _defaults:
+        public: true
+        autowire: true
+
+    Smile\HipaySyliusPlugin\Twig\OneyCustomerValidatorExtension:
+        class: Smile\HipaySyliusPlugin\Twig\OneyCustomerValidatorExtension
+        tags: ['twig.extension']

@@ -1,0 +1,14 @@
+<!--@todo CSS work -->
+<div id="hipay-form-{{ gateway }}" class="hipay-form" style="display: none;">
+    <div>
+        <strong style="color: red;">{{ "smile_hipay_sylius_plugin.ui.oney.form_review_warning"|trans }}</strong>
+    </div>
+    <!--Auto height: https://stackoverflow.com/questions/9975810/make-iframe-automatically-adjust-height-according-to-the-contents-without-using  -->
+    <iframe frameborder="0"
+            class="hipay-customer-profile gateway-{{ gateway }}"
+            id="hipay-{{ gateway }}-customer-profile"
+            src="{{ path('sylius_hipay_oney_iframe') }}"
+            referrerpolicy="origin"
+            style="height: 330px; width: 100%;">
+    </iframe>
+</div>
