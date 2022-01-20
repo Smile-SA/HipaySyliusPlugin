@@ -1,0 +1,11 @@
+services:
+    _defaults:
+        public: true
+        autowire: true
+
+    Smile\HipaySyliusPlugin\Security\HipaySignatureVerification:
+        class: Smile\HipaySyliusPlugin\Security\HipaySignatureVerification
+        arguments:
+            - '@Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry'
+            - '@request_stack'
+            - '@sylius.repository.payment_method'

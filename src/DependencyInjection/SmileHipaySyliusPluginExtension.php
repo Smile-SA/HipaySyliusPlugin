@@ -38,6 +38,7 @@ class SmileHipaySyliusPluginExtension extends AbstractResourceExtension
         $container->setParameter("smile_hipay_sylius_plugin.client.stage", $configs['api']['stage']);
         $container->setParameter("smile_hipay_sylius_plugin.client.locale", $configs['api']['locale']);
         $container->setParameter("smile_hipay_sylius_plugin.client.notify_url", $configs['api']['notify_url']);
+        $container->setParameter("smile_hipay_sylius_plugin.client.do_refunds", $configs['api']['do_refunds']);
 
         $container->setParameter(
             "smile_hipay_sylius_plugin.client.moto.username",
@@ -54,6 +55,7 @@ class SmileHipaySyliusPluginExtension extends AbstractResourceExtension
         $container->setParameter("smile_hipay_sylius_plugin.client.moto.stage", $configs['api_moto']['stage']);
         $container->setParameter("smile_hipay_sylius_plugin.client.moto.locale", $configs['api_moto']['locale']);
         $container->setParameter("smile_hipay_sylius_plugin.client.moto.notify_url", $configs['api']['notify_url']);
+        $container->setParameter("smile_hipay_sylius_plugin.client.moto.do_refunds", $configs['api']['do_refunds']);
 
     }
 

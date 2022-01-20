@@ -29,4 +29,8 @@ interface ApiCredentialInterface
     public function getLocale(): string;
 
     public function setLocale(string $locale): void;
+
+    public function getDoRefunds(): bool;
+
+    public function setDoRefunds($doRefunds): void;
 }

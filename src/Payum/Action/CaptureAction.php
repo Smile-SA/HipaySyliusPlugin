@@ -37,7 +37,6 @@ final class CaptureAction implements ActionInterface, GatewayAwareInterface
 
     private LoggerInterface $logger;
     private CreateTransaction $createTransaction;
-    private ApiOneyConfig $apiOney;
 
     public function __construct(LoggerInterface $logger, CreateTransaction $createTransaction)
     {
@@ -49,15 +48,12 @@ final class CaptureAction implements ActionInterface, GatewayAwareInterface
     {
         RequestNotSupportedException::assertSupports($this, $request);
 
+        /** @var Capture $request */
         /** @var PaymentInterface $payment */
         $payment = $request->getModel();
         /** @var PaymentMethodInterface $paymentMethod */
         $paymentMethod = $payment->getMethod();
         $gatewayConfig = $paymentMethod->getGatewayConfig();
-
-/*        dump($gatewayConfig->getConfig());
-        dump($gatewayConfig->getFactoryName());
-        dump($gatewayConfig);*/
 
         /** @var PaymentSecurityToken $token */
         $token = $request->getToken();
@@ -76,36 +72,32 @@ final class CaptureAction implements ActionInterface, GatewayAwareInterface
 
         try {
             if ($gatewayfactory === HipayOney3GatewayFactory::FACTORY_NAME || $gatewayfactory === HipayOney4GatewayFactory::FACTORY_NAME) {
-                $transaction = $this->createTransaction->createOney($payment, $gatewayfactory, $gatewayConfig->getConfig(), $token);
+                $transaction = $this->createTransaction->createOney($payment, $gatewayConfig, $token);
             } else {
-                $transaction = $this->createTransaction->create($payment, $gatewayfactory, $token);
+                $transaction = $this->createTransaction->create($payment, $gatewayConfig, $token);
             }
         } catch (\Throwable $exception) {
+            // @todo Handle code 3010004 => Duplicate order
             $this->logErrors($exception->getMessage());
             return;
         }
 
+        $payment->setDetails([
+            'status' => $transaction->getStatus(),
+            'hipay_order_id' => $transaction->getMid(),
+            'transaction_id' => $transaction->getTransactionReference(),
+            'payum_token' => $token->getHash(),
+        ]);
+
         switch ($transaction->getState()) {
-            case TransactionState::COMPLETED:
-            case TransactionState::PENDING:
-                $payment->setDetails([
-                    'status' => HipayStatus::CODE_STATUS_CAPTURED,
-                    'hipay_order_id' => $transaction->getMid(),
-                    'transaction_id' => $transaction->getTransactionReference(),
-                    'payum_token' => $token->getHash(),
-                ]);
-
-                break;
             case TransactionState::FORWARDING:
+            case TransactionState::PENDING:
                 $forwardUrl = $transaction->getForwardUrl();
-                $payment->setDetails([
-                     'status' => HipayStatus::CODE_STATUS_PENDING,
-                     'hipay_order_id' => $transaction->getMid(),
-                     'transaction_id' => $transaction->getTransactionReference(),
-                     'payum_token' => $token->getHash(),
-                 ]);
-
-                throw new HttpPostRedirect($forwardUrl);
+                if($forwardUrl){
+                    throw new HttpPostRedirect($forwardUrl);
+                }else{
+                    throw new HipayException('Expected a forward to not be empty !');
+                }
 
             case TransactionState::ERROR:
             case TransactionState::DECLINED:

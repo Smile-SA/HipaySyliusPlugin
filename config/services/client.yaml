@@ -16,6 +16,7 @@ services:
             - '%smile_hipay_sylius_plugin.client.stage%'
             - '%smile_hipay_sylius_plugin.client.locale%'
             - '%smile_hipay_sylius_plugin.client.notify_url%'
+            - '%smile_hipay_sylius_plugin.client.do_refunds%'
 
     Smile\HipaySyliusPlugin\Builder\ApiCredentialMotoBuilder:
         class: Smile\HipaySyliusPlugin\Builder\ApiCredentialMotoBuilder
@@ -26,6 +27,7 @@ services:
             - '%smile_hipay_sylius_plugin.client.moto.stage%'
             - '%smile_hipay_sylius_plugin.client.moto.locale%'
             - '%smile_hipay_sylius_plugin.client.moto.notify_url%'
+            - '%smile_hipay_sylius_plugin.client.moto.do_refunds%'
         
     Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry:
         class: Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry
@@ -39,3 +41,4 @@ services:
             - '@Smile\HipaySyliusPlugin\Context\PaymentContext'
             - '@request_stack'
             - '@Smile\HipaySyliusPlugin\Oney\OneyCustomerValidator'
+            - '@router'

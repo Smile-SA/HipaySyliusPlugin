@@ -24,6 +24,7 @@ imports:
     - { resource: "services/event_subscriber.yaml" }
     - { resource: "services/context.yaml" }
     - { resource: "services/payum.yaml" }
+    - { resource: "services/security.yaml" }
     - { resource: "services/twig.yaml" }
     - { resource: "services/validator.yaml" }
 parameters:

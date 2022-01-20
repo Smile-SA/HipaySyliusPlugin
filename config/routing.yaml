@@ -1,5 +1,5 @@
 sylius_hipay_plugin_notify_generic:
-    path: /payum/hipay/notify-generic
+    path: /payum/hipay/notify-generic/{gateway}
     methods: [GET, POST]
     defaults:
         _controller: Smile\HipaySyliusPlugin\Controller\NotifyController::doAction

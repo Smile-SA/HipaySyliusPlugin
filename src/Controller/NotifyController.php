@@ -12,35 +12,47 @@ declare(strict_types=1);
 
 namespace Smile\HipaySyliusPlugin\Controller;
 
-use App\Entity\Payment\Payment;
+use Payum\Core\Model\ArrayObject;
+use Payum\Core\Request\Notify;
+use Sylius\Bundle\PayumBundle\Request\GetStatus;
+use Sylius\Component\Core\Model\Payment;
+use Sylius\Component\Core\Model\Order;
 use Payum\Bundle\PayumBundle\Controller\PayumController;
+use Payum\Bundle\PayumBundle\Controller\NotifyController as PayumControllerNotifyController;
+use Sylius\Component\Core\Repository\OrderRepositoryInterface;
+use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class NotifyController extends PayumController
 {
     // Here you can change the fields which contains order id in the Request
     private const FIELDS_ORDER_ID = 'order.id';
 
-    public function doAction(Request $request)
+    public function doAction(Request $request, PaymentRepositoryInterface $paymentRepository, OrderRepositoryInterface $orderRepository)
     {
-        $orderId = $request->request->get(self::FIELDS_ORDER_ID);
-        $payment = $this->container->get('sylius.repository.payment')->findOneBy(
-            ['orderId' => $orderId]
+        $orderId = $request->request->get('order')['id'];
+
+        $order = $orderRepository->findOneBy(
+            ['number' => $orderId]
+        );
+
+        if (!$order instanceof Order) {
+            throw new \LogicException(sprintf('Undefined order with number %s', $orderId));
+        }
+
+        $payment = $paymentRepository->findOneBy(
+            ['order' => $order->getId()]
         );
 
         if (!$payment instanceof Payment) {
             throw new \LogicException(sprintf('Undefined payment with order_id %s', $orderId));
         }
 
-        $details = $payment->getDetails();
-        if (!isset($details['payum_token'])) {
-            throw new \LogicException(
-                sprintf('Undefined payum token in details for payment with id %s', $payment->getId())
-            );
-        }
+        $gateway = $this->getPayum()->getGateway($request->get('gateway'));
 
-        return $this->forward('PayumBundle:Notify:do', [
-            'payum_token' => $details['payum_token'],
-        ]);
+        $gateway->execute(new GetStatus($payment));
+
+        return new Response('OK', 200);
     }
 }

@@ -26,6 +26,7 @@ class ApiCredentialBuilder implements ApiCredentialBuilderInterface
     private string $stage;
     private string $locale;
     private string $notifyUrl;
+    private bool $doRefunds;
 
     public function __construct(
         string $apiUsername,
@@ -33,7 +34,8 @@ class ApiCredentialBuilder implements ApiCredentialBuilderInterface
         string $secretPassphrase,
         string $stage,
         string $locale,
-        string $notifyUrl
+        string $notifyUrl,
+        bool $doRefunds
     ) {
         $this->apiUsername = $apiUsername;
         $this->apiPassword = $apiPassword;
@@ -41,6 +43,7 @@ class ApiCredentialBuilder implements ApiCredentialBuilderInterface
         $this->stage = $stage;
         $this->locale = $locale;
         $this->notifyUrl = $notifyUrl;
+        $this->doRefunds = $doRefunds;
     }
 
     public function supports(string $gateway): bool
@@ -63,7 +66,8 @@ class ApiCredentialBuilder implements ApiCredentialBuilderInterface
             $this->secretPassphrase,
             $this->stage,
             $this->locale,
-            $this->notifyUrl
+            $this->notifyUrl,
+            $this->doRefunds
         );
     }
 }

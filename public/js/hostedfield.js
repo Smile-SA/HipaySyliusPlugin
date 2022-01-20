@@ -192,7 +192,6 @@ configs.forEach((config) => {
       });
 
       function(response) {
-          console.log(response);
           document.getElementById("hipay-result-token-".concat(gateway)).value = response.token;
           document.getElementById("hipay-result-payment-product-".concat(gateway)).value = response.payment_product;
           formPaymentMethod.submit();

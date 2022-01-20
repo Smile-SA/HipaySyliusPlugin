@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Smile\HipaySyliusPlugin\Api;
 
+use HiPay\Fullservice\Enum\ThreeDSTwo\DeviceChannel;
 use HiPay\Fullservice\Gateway\Client\GatewayClient;
 use HiPay\Fullservice\Gateway\Model\Cart\Cart;
 use HiPay\Fullservice\Gateway\Model\Cart\Item;
@@ -24,6 +25,7 @@ use HiPay\Fullservice\Gateway\Request\PaymentMethod\XTimesCreditCardPaymentMetho
 use HiPay\Fullservice\HTTP\Configuration\Configuration;
 use HiPay\Fullservice\HTTP\SimpleHTTPClient;
 use HiPay\Fullservice\Model\AbstractModel;
+use Payum\Core\Model\GatewayConfigInterface;
 use Payum\Core\Reply\HttpPostRedirect;
 use Smile\HipaySyliusPlugin\Context\PaymentContext;
 use Smile\HipaySyliusPlugin\Exception\HipayException;
@@ -37,6 +39,8 @@ use Sylius\Bundle\PayumBundle\Model\PaymentSecurityTokenInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Webmozart\Assert\Assert;
 
@@ -56,22 +60,25 @@ final class CreateTransaction
 
     private const OPERATION_SALE = 'Sale';
 
-    private ApiCredentialRegistry $apiCredentialRegistry;
-    private PaymentContext $paymentContext;
-    private ?Request $request;
+    protected ApiCredentialRegistry $apiCredentialRegistry;
+    protected PaymentContext $paymentContext;
+    protected ?Request $request;
     protected OneyCustomerValidator $customerValidator;
+    protected RouterInterface $router;
 
     public function __construct(
         ApiCredentialRegistry $apiCredentialRegistry,
         PaymentContext $paymentContext,
         RequestStack $requestStack = null,
-        OneyCustomerValidator $customerValidator
+        OneyCustomerValidator $customerValidator,
+        RouterInterface $router
     )
     {
         $this->apiCredentialRegistry = $apiCredentialRegistry;
         $this->paymentContext = $paymentContext;
         $this->request = $requestStack ? $requestStack->getCurrentRequest() : null;
         $this->customerValidator = $customerValidator;
+        $this->router = $router;
     }
 
     /**
@@ -82,8 +89,9 @@ final class CreateTransaction
      *
      * @throws \Exception
      */
-    public function create(PaymentInterface $payment, string $gatewayFactory, PaymentSecurityTokenInterface $payumToken)
+    public function create(PaymentInterface $payment, GatewayConfigInterface $gatewayConfig, PaymentSecurityTokenInterface $payumToken)
     {
+        $gatewayFactory = $this->getGatewayFactoryName($gatewayConfig);
         $config = $this->getConfiguration($gatewayFactory);
         $clientProvider = new SimpleHTTPClient($config);
         $gatewayClient = new GatewayClient($clientProvider);
@@ -93,6 +101,7 @@ final class CreateTransaction
         //$orderRequest->cid = $payment->getOrder()->getNumber();
         $orderRequest->payment_product = $this->paymentContext->get(PaymentContext::HIPAY_PAYMENT_PRODUCT);
         $orderRequest->description = 'TODO Description';
+        $orderRequest->device_channel = DeviceChannel::BROWSER;
         $orderRequest->operation = self::OPERATION_SALE;
         $orderRequest->currency = $payment->getCurrencyCode();
         $orderRequest->amount = ($payment->getAmount() / 100);
@@ -100,7 +109,7 @@ final class CreateTransaction
         $orderRequest->tax = $payment->getOrder()->getTaxTotal();
         $orderRequest->ipaddr = $this->request->getClientIp();
         $orderRequest->language = $payment->getOrder()->getLocaleCode();
-        $orderRequest->notify_url = $this->getNotifyUrl($gatewayFactory, $payumToken->getAfterUrl());
+        $orderRequest->notify_url = $this->getNotifyUrl($gatewayConfig);
         $orderRequest->accept_url = $payumToken->getAfterUrl();
         $orderRequest->cancel_url = $payumToken->getAfterUrl();
         $orderRequest->decline_url = $payumToken->getAfterUrl();
@@ -135,11 +144,12 @@ final class CreateTransaction
      *
      * @throws \Exception
      */
-    public function createOney(PaymentInterface $payment, string $gatewayFactory, array $gatewayConfig, PaymentSecurityTokenInterface $payumToken)
+    public function createOney(PaymentInterface $payment, GatewayConfigInterface $gatewayConfig, PaymentSecurityTokenInterface $payumToken)
     {
+        $gatewayFactory = $this->getGatewayFactoryName($gatewayConfig);
+        $gatewayConfigArray = $gatewayConfig->getConfig();
         $config = $this->getConfiguration($gatewayFactory);
 
-        dd($config);
         $clientProvider = new SimpleHTTPClient($config);
         $gatewayClient = new GatewayClient($clientProvider);
         $order = $payment->getOrder();
@@ -169,8 +179,9 @@ final class CreateTransaction
         }
 
         $orderRequest = new OrderRequest();
-        $orderRequest->eci = 7;
+        $orderRequest->eci = 7;// @todo constant
         $orderRequest->cid = $customer->getId();
+        $orderRequest->device_channel = DeviceChannel::BROWSER;
         $orderRequest->orderid = $order->getNumber();
         $orderRequest->description = 'Order #' . $order->getNumber();// @todo translate
         $orderRequest->operation = self::OPERATION_SALE;
@@ -180,7 +191,7 @@ final class CreateTransaction
         $orderRequest->tax = $payment->getOrder()->getTaxTotal();
         $orderRequest->ipaddr = $this->request->getClientIp();
         $orderRequest->language = $payment->getOrder()->getLocaleCode();
-        $orderRequest->notify_url = $this->getNotifyUrl($gatewayFactory, $payumToken->getAfterUrl());
+        $orderRequest->notify_url = $this->getNotifyUrl($gatewayConfig);
         $orderRequest->accept_url = $payumToken->getAfterUrl();
         $orderRequest->cancel_url = $payumToken->getAfterUrl();
         $orderRequest->decline_url = $payumToken->getAfterUrl();
@@ -226,33 +237,33 @@ final class CreateTransaction
         $item->setName('Order #' . $order->getNumber());// @todo translate
         //$item->setProductCategory(8);
         $item->setQuantity(1);
-        $item->setTaxRate(20);
+        $item->setTaxRate(20);// @todo get real tax rate
         $item->setProductReference($order->getNumber());
         $item->setType('good');
         $basket->addItem($item);
 
         $orderRequest->basket = $basket;
 
-        if (!isset($gatewayConfig['fees'])) {
+        if (!isset($gatewayConfigArray['fees'])) {
             throw new HipayException('Unable to find fees information for Oney payment Method');
         }
         if ($gatewayFactory === HipayOney3GatewayFactory::FACTORY_NAME) {
             $orderRequest->payment_product =
-                (true === $gatewayConfig['fees']) ? self::PAYMENT_PRODUCT_3XCB : self::PAYMENT_PRODUCT_3XCB_NO_FEES;
+                (true === $gatewayConfigArray['fees']) ? self::PAYMENT_PRODUCT_3XCB : self::PAYMENT_PRODUCT_3XCB_NO_FEES;
         }
 
         if ($gatewayFactory === HipayOney4GatewayFactory::FACTORY_NAME) {
             $orderRequest->payment_product =
-                (true === $gatewayConfig['fees']) ? self::PAYMENT_PRODUCT_4XCB : self::PAYMENT_PRODUCT_4XCB_NO_FEES;
+                (true === $gatewayConfigArray['fees']) ? self::PAYMENT_PRODUCT_4XCB : self::PAYMENT_PRODUCT_4XCB_NO_FEES;
                 self::PAYMENT_PRODUCT_4XCB_NO_FEES;
         }
 
-        if (empty($gatewayConfig['codeOPC'])) {
+        if (empty($gatewayConfigArray['codeOPC'])) {
             throw new HipayException('Unable to find code OPC for Oney payment Method');
         }
 
         $orderRequest->payment_product_parameters = [
-            'merchant_promotion' => $gatewayConfig['codeOPC']
+            'merchant_promotion' => $gatewayConfigArray['codeOPC']
         ];
 
         $xTimesCreditCardPaymentMethod = new XTimesCreditCardPaymentMethod();
@@ -284,11 +295,35 @@ final class CreateTransaction
         );
     }
 
-    private function getNotifyUrl(string $gatewayFactory, ?string $defaultUrl = null): ?string
+    private function getNotifyUrl(GatewayConfigInterface $gatewayConfig): ?string
     {
+        $gatewayFactory = $this->getGatewayFactoryName($gatewayConfig);
         /** @var \Smile\HipaySyliusPlugin\Api\ApiCredential $apiCredentials */
         $apiCredentials = $this->apiCredentialRegistry->getApiConfig($gatewayFactory);
 
-        return $apiCredentials->getNotifyUrl() ?: $defaultUrl;
+        return $apiCredentials->getNotifyUrl() ?: $this->getDefaultNotifyUrl($gatewayConfig->getGatewayName());
+    }
+
+    private function getDefaultNotifyUrl(string $gatewayFactory): string
+    {
+        return $this->router->generate(
+            'sylius_hipay_plugin_notify_generic',
+            ['gateway' => $gatewayFactory],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+    }
+
+    private function getGatewayFactoryName(GatewayConfigInterface $gatewayConfig)
+    {
+        try{
+            /**
+             * @see GatewayConfigInterface
+             * method getFactoryName()
+             * will be soon removed
+             */
+            return $gatewayConfig->getFactoryName();
+        } catch (\Error $e){
+            return $gatewayConfig->getConfig()['factory_name'];
+        }
     }
 }

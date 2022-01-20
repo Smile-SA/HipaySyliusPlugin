@@ -20,6 +20,7 @@ class ApiCredential implements ApiCredentialInterface
     private string $stage;
     private string $locale;
     private string $notifyUrl;
+    private bool $doRefunds;
 
     public function __construct(
         string $username,
@@ -27,7 +28,8 @@ class ApiCredential implements ApiCredentialInterface
         string $secretPassphrase,
         string $stage,
         string $locale,
-        string $notifyUrl
+        string $notifyUrl,
+        bool $doRefunds
     ) {
         $this->username = $username;
         $this->password = $password;
@@ -35,6 +37,7 @@ class ApiCredential implements ApiCredentialInterface
         $this->stage = $stage;
         $this->locale = $locale;
         $this->notifyUrl = $notifyUrl;
+        $this->doRefunds = $doRefunds;
     }
 
     public function getUsername(): string
@@ -87,19 +90,23 @@ class ApiCredential implements ApiCredentialInterface
         $this->locale = $locale;
     }
 
-    /**
-     * @return string
-     */
     public function getNotifyUrl(): string
     {
         return $this->notifyUrl;
     }
 
-    /**
-     * @param string $notifyUrl
-     */
     public function setNotifyUrl(string $notifyUrl): void
     {
         $this->notifyUrl = $notifyUrl;
+    }
+
+    public function getDoRefunds(): bool
+    {
+        return $this->doRefunds;
+    }
+
+    public function setDoRefunds($doRefunds): void
+    {
+        $this->doRefunds = $doRefunds;
     }
 }
