@@ -22,6 +22,7 @@ use Payum\Core\Request\GetHttpRequest;
 use Smile\HipaySyliusPlugin\Api\HipayStatus;
 use Smile\HipaySyliusPlugin\Context\PaymentContext;
 use Smile\HipaySyliusPlugin\Exception\HipayException;
+use Smile\HipaySyliusPlugin\Gateway\GatewayFactoryNameGetterTrait;
 use Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry;
 use Smile\HipaySyliusPlugin\Security\HipaySignatureVerification;
 use Sylius\Bundle\PayumBundle\Request\GetStatus;
@@ -33,6 +34,7 @@ use Sylius\Component\Order\Model\OrderInterface;
 final class StatusAction implements ActionInterface, GatewayAwareInterface
 {
     use GatewayAwareTrait;
+    use GatewayFactoryNameGetterTrait;
 
     private GetHttpRequest $getHttpRequest;
     private PaymentContext $paymentContext;
@@ -230,19 +232,5 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
     {
         $this->paymentContext->remove(PaymentContext::HIPAY_TOKEN);
         $this->paymentContext->remove(PaymentContext::HIPAY_PAYMENT_PRODUCT);
-    }
-
-    protected function getGatewayFactoryName(GatewayConfigInterface $gatewayConfig)
-    {
-        try{
-            /**
-             * @see GatewayConfigInterface
-             * method getFactoryName()
-             * will be soon removed
-             */
-            return $gatewayConfig->getFactoryName();
-        } catch (\Error $e){
-            return $gatewayConfig->getConfig()['factory_name'];
-        }
     }
 }

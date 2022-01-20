@@ -29,6 +29,7 @@ use Payum\Core\Model\GatewayConfigInterface;
 use Payum\Core\Reply\HttpPostRedirect;
 use Smile\HipaySyliusPlugin\Context\PaymentContext;
 use Smile\HipaySyliusPlugin\Exception\HipayException;
+use Smile\HipaySyliusPlugin\Gateway\GatewayFactoryNameGetterTrait;
 use Smile\HipaySyliusPlugin\Oney\OneyCustomerValidator;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory;
@@ -50,6 +51,8 @@ use Webmozart\Assert\Assert;
  */
 final class CreateTransaction
 {
+    use GatewayFactoryNameGetterTrait;
+
     private const ECI_ECOMMERCE_SSL_TLS = 7;
     private const ECI_MO_TO = 1;
 
@@ -311,19 +314,5 @@ final class CreateTransaction
             ['gateway' => $gatewayFactory],
             UrlGeneratorInterface::ABSOLUTE_URL
         );
-    }
-
-    private function getGatewayFactoryName(GatewayConfigInterface $gatewayConfig)
-    {
-        try{
-            /**
-             * @see GatewayConfigInterface
-             * method getFactoryName()
-             * will be soon removed
-             */
-            return $gatewayConfig->getFactoryName();
-        } catch (\Error $e){
-            return $gatewayConfig->getConfig()['factory_name'];
-        }
     }
 }

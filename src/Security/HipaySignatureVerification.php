@@ -18,6 +18,7 @@ use Payum\Core\Model\GatewayConfigInterface;
 use Payum\Core\Request\GetHttpRequest;
 use Smile\HipaySyliusPlugin\Api\ApiCredentialInterface;
 use Smile\HipaySyliusPlugin\Exception\HipayException;
+use Smile\HipaySyliusPlugin\Gateway\GatewayFactoryNameGetterTrait;
 use Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface;
@@ -26,6 +27,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class HipaySignatureVerification
 {
+    use GatewayFactoryNameGetterTrait;
+
     public const HEADERS_NAME_SIGNATURE = 'x-allopass-signature';
     public const QUERY_NAME_SIGNATURE = 'hash';
 
@@ -137,20 +140,6 @@ class HipaySignatureVerification
                 break;
             default:
                 throw new HipayException('Unable to determine hash algorithm.');
-        }
-    }
-
-    protected function getGatewayFactoryName(GatewayConfigInterface $gatewayConfig)
-    {
-        try{
-            /**
-             * @see GatewayConfigInterface
-             * method getFactoryName()
-             * will be soon removed
-             */
-            return $gatewayConfig->getFactoryName();
-        } catch (\Error $e){
-            return $gatewayConfig->getConfig()['factory_name'];
         }
     }
 }
