@@ -39,9 +39,16 @@
         </div>
     </div>
     <script type="application/javascript">
-        window.parent.postMessage('{"hipay_customer_profile": {"is_valid": {{ form.vars.valid and form.vars.submitted ? 'true' : 'false' }}}}');
+        {% set isCustomerValid = (form.vars.valid and form.vars.submitted) or isOneyCustomerValid(customer) %}
+        window.parent.postMessage('{"hipay_customer_profile": {"is_valid": {{ isCustomerValid ? 'true' : 'false' }}}}');
         {% if not form.vars.submitted and not isOneyCustomerValid(customer)%}
         document.forms["{{ form.vars.name }}"].submit();
         {% endif %}
+    </script>
+    <script type="application/javascript">
+        var dom_observer = new MutationObserver(function(mutation) {
+            window.parent.postMessage('resize_customer_profile_window');
+        });
+        dom_observer.observe(document.documentElement || document.body, { attributes: true, childList: true, subtree: true });
     </script>
 {% endblock %}

@@ -182,7 +182,7 @@ final class CreateTransaction
         }
 
         $orderRequest = new OrderRequest();
-        $orderRequest->eci = 7;// @todo constant
+        $orderRequest->eci = self::ECI_ECOMMERCE_SSL_TLS;
         $orderRequest->cid = $customer->getId();
         $orderRequest->device_channel = DeviceChannel::BROWSER;
         $orderRequest->orderid = $order->getNumber();
