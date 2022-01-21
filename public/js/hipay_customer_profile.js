@@ -49,6 +49,7 @@
       }else{
         nextStepButton.removeAttribute('disabled');
       }
+      window.postMessage('resize_customer_profile_window');
     });
     if(inputField.checked) {
       inputField.dispatchEvent(new Event('change'));

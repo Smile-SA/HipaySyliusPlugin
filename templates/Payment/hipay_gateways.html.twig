@@ -1,0 +1,19 @@
+{% if method.gatewayConfig.factoryName == constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayCardGatewayFactory::FACTORY_NAME") %}
+    {{ render(controller('Smile\\HipaySyliusPlugin\\Controller\\HostedFieldController:renderHostedFieldsAction', {
+        'orderId': order.id, 'gateway': constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayCardGatewayFactory::FACTORY_NAME")
+    })) }}
+{% endif %}
+
+{% if method.gatewayConfig.factoryName == constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayMotoCardGatewayFactory::FACTORY_NAME") %}
+    {{ render(controller('Smile\\HipaySyliusPlugin\\Controller\\HostedFieldController:renderHostedFieldsAction', {
+        'orderId': order.id, 'gateway': method.gatewayConfig.factoryName
+    })) }}
+{% endif %}
+
+{% if method.gatewayConfig.factoryName == constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayOney3GatewayFactory::FACTORY_NAME")
+    or method.gatewayConfig.factoryName == constant("Smile\\HipaySyliusPlugin\\Payum\\Factory\\HipayOney4GatewayFactory::FACTORY_NAME")
+%}
+    {{ render(controller('Smile\\HipaySyliusPlugin\\Controller\\OneyCustomerController:renderOneyCustomerIframe', {
+        'gateway': method.gatewayConfig.factoryName
+    })) }}
+{% endif %}
