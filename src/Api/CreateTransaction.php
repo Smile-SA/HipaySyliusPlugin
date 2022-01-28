@@ -218,7 +218,7 @@ final class CreateTransaction
         $customerBillingInfo->firstname = $billingAddress->getFirstName();
         $customerBillingInfo->lastname = $billingAddress->getLastName();
         $customerBillingInfo->birthdate = $customer->getBirthday()->format('Ymd');
-        $customerBillingInfo->phone = $billingAddress->getPhoneNumber();
+        $customerBillingInfo->phone = $billingAddress->getPhoneNumber() ?: $customer->getPhoneNumber();
         $customerBillingInfo->streetaddress = $billingAddress->getStreet();
         $customerBillingInfo->zipcode = $billingAddress->getPostcode();
         $customerBillingInfo->city = $billingAddress->getCity();
@@ -281,6 +281,7 @@ final class CreateTransaction
         $xTimesCreditCardPaymentMethod->delivery_date = (new \DateTime('+1 week'))->format('Y-m-d');
 
         $orderRequest->paymentMethod = $xTimesCreditCardPaymentMethod;
+        dump($orderRequest);
 
         return $gatewayClient->requestNewOrder($orderRequest);
     }

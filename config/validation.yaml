@@ -1,7 +1,7 @@
 Sylius\Component\Customer\Model\Customer:
     properties:
         birthday:
-            - NotBlank: # @todo Make YY -18 verification
+            - NotBlank:
                   message: smile_hipay_sylius_plugin.customer.birthday.not_blank
                   groups: [hipay]
             - LessThanOrEqual:
@@ -12,4 +12,14 @@ Sylius\Component\Customer\Model\Customer:
         phoneNumber:
             - NotBlank:
                   message: smile_hipay_sylius_plugin.customer.phoneNumber.not_blank
+                  groups: [hipay]
+            - Regex:
+                  pattern: |
+                      /^
+                        (?:(?:\+|00)33|0)     # Dialing code
+                        \s*[1-9]              # First number (from 1 to 9)
+                        (?:[\s.-]*\d{2}){4}   # End of the phone number
+                        $/x
+                  match: true
+                  message: smile_hipay_sylius_plugin.customer.phoneNumber.regexp
                   groups: [hipay]
