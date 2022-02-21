@@ -12,12 +12,10 @@ declare(strict_types=1);
 
 namespace Smile\HipaySyliusPlugin\Payum\Action;
 
-use App\Entity\Payment\Payment;
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
-use Payum\Core\Model\GatewayConfigInterface;
 use Payum\Core\Request\GetHttpRequest;
 use SM\Factory\FactoryInterface;
 use Smile\HipaySyliusPlugin\Api\HipayStatus;
@@ -50,7 +48,7 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
         PaymentContext             $paymentContext,
         HipaySignatureVerification $hipaySignatureVerification,
         ApiCredentialRegistry $apiCredentialRegistry,
-        FactoryInterface $stateMachineFactory,
+        FactoryInterface $stateMachineFactory
     )
     {
         $this->getHttpRequest = $getHttpRequest;
