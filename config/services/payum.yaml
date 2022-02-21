@@ -12,6 +12,7 @@ services:
             - '@Smile\HipaySyliusPlugin\Context\PaymentContext'
             - '@Smile\HipaySyliusPlugin\Security\HipaySignatureVerification'
             - '@Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry'
+            - '@sm.factory'
         tags:
             - { name: payum.action, factory: hipay_card, alias: payum.action.status }
             - { name: payum.action, factory: hipay_moto_card, alias: payum.action.status }
