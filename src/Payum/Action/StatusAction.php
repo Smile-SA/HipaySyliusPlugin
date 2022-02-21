@@ -19,6 +19,7 @@ use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Model\GatewayConfigInterface;
 use Payum\Core\Request\GetHttpRequest;
+use SM\Factory\FactoryInterface;
 use Smile\HipaySyliusPlugin\Api\HipayStatus;
 use Smile\HipaySyliusPlugin\Context\PaymentContext;
 use Smile\HipaySyliusPlugin\Exception\HipayException;
@@ -30,6 +31,8 @@ use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Order\Model\OrderInterface;
+use Sylius\Component\Payment\PaymentTransitions;
+
 
 final class StatusAction implements ActionInterface, GatewayAwareInterface
 {
@@ -40,18 +43,21 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
     private PaymentContext $paymentContext;
     private HipaySignatureVerification $hipaySignatureVerification;
     protected ApiCredentialRegistry $apiCredentialRegistry;
+    private FactoryInterface $stateMachineFactory;
 
     public function __construct(
         GetHttpRequest             $getHttpRequest,
         PaymentContext             $paymentContext,
         HipaySignatureVerification $hipaySignatureVerification,
-        ApiCredentialRegistry $apiCredentialRegistry
+        ApiCredentialRegistry $apiCredentialRegistry,
+        FactoryInterface $stateMachineFactory,
     )
     {
         $this->getHttpRequest = $getHttpRequest;
         $this->paymentContext = $paymentContext;
         $this->hipaySignatureVerification = $hipaySignatureVerification;
         $this->apiCredentialRegistry = $apiCredentialRegistry;
+        $this->stateMachineFactory = $stateMachineFactory;
     }
 
     /** @param GetStatus $request */
@@ -82,6 +88,7 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
 
         $status = $queryResponse['status'] ?? $requestResponse['status'] ?? $paymentDetails['status'] ?? null;
         $order = $payment->getOrder();
+        $stateMachine = $this->stateMachineFactory->get($payment, PaymentTransitions::GRAPH);
 
         switch ($status) {
             /**
@@ -140,18 +147,6 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
                 $payment->setDetails(array_merge($paymentDetails, ['status' => $status]));
                 $payment->setUpdatedAt(new \DateTime());
                 $order->setUpdatedAt(new \DateTime());
-                if ($order->getPaymentState() !== OrderPaymentStates::STATE_AWAITING_PAYMENT)
-                {
-                    $retryPayment = new Payment();
-                    $retryPayment->setCreatedAt(new \DateTime());
-                    $retryPayment->setAmount($payment->getAmount());
-                    $retryPayment->setCurrencyCode($payment->getCurrencyCode());
-                    $retryPayment->setMethod($payment->getMethod());
-                    $retryPayment->setDetails($paymentDetails);
-                    $retryPayment->setState(PaymentInterface::STATE_CART);
-
-                    $order->addPayment($retryPayment);
-                }
                 return;
             /**
              * Sentinel/security/fraude issue
