@@ -85,7 +85,7 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
 
         switch ($status) {
             /**
-             * Used pressed/clicked cancer/return to merchand button/link
+             * User pressed/clicked cancer/return to merchand button/link
              */
             case HipayStatus::CODE_STATUS_CANCELLED:
                 $request->markCanceled();
@@ -150,7 +150,7 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
                     $retryPayment->setDetails($paymentDetails);
                     $retryPayment->setState(PaymentInterface::STATE_CART);
 
-                    $order->addPayment($refundPayment);
+                    $order->addPayment($retryPayment);
                 }
                 return;
             /**
@@ -214,6 +214,7 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
                 return;
             case HipayStatus::CODE_STATUS_REFUND_REQUESTED:
             case HipayStatus::CODE_STATUS_REFUND_REFUSED:
+            case HipayStatus::CODE_STATUS_CAPTURE_REQUESTED:
                 // Gently ignore them as they are intermediate statuses
                 return;
         }

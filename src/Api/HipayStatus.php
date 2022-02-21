@@ -30,6 +30,8 @@ class HipayStatus
 
     public const CODE_STATUS_CAPTURE_REFUSED             = TransactionStatus::CAPTURE_REFUSED;
 
+    public const CODE_STATUS_CAPTURE_REQUESTED           = TransactionStatus::CAPTURE_REQUESTED;
+
     public const CODE_STATUS_EXPIRED                     = TransactionStatus::EXPIRED;
 
     public const CODE_STATUS_CANCELLED                   = TransactionStatus::CANCELLED;

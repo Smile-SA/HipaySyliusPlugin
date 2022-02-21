@@ -32,9 +32,9 @@ class HipaySignatureVerification
     public const HEADERS_NAME_SIGNATURE = 'x-allopass-signature';
     public const QUERY_NAME_SIGNATURE = 'hash';
 
-    private ApiCredentialRegistry $apiCredentialRegistry;
+    protected ApiCredentialRegistry $apiCredentialRegistry;
     protected ?Request $request;
-    private PaymentMethodRepositoryInterface $paymentMethodRepository;
+    protected PaymentMethodRepositoryInterface $paymentMethodRepository;
 
     public function __construct(
         ApiCredentialRegistry $apiCredentialRegistry,

@@ -88,11 +88,11 @@ final class CreateTransaction
      * @param PaymentInterface $payment
      * @param PaymentSecurityTokenInterface $payumToken
      *
-     * @return Transaction|AbstractModel
+     * @return Transaction
      *
      * @throws \Exception
      */
-    public function create(PaymentInterface $payment, GatewayConfigInterface $gatewayConfig, PaymentSecurityTokenInterface $payumToken)
+    public function create(PaymentInterface $payment, GatewayConfigInterface $gatewayConfig, PaymentSecurityTokenInterface $payumToken): Transaction
     {
         $gatewayFactory = $this->getGatewayFactoryName($gatewayConfig);
         $config = $this->getConfiguration($gatewayFactory);
@@ -109,7 +109,7 @@ final class CreateTransaction
         $orderRequest->currency = $payment->getCurrencyCode();
         $orderRequest->amount = ($payment->getAmount() / 100);
         $orderRequest->shipping = ($payment->getOrder()->getShippingTotal() / 100);
-        $orderRequest->tax = $payment->getOrder()->getTaxTotal();
+        $orderRequest->tax = $payment->getOrder()->getTaxTotal() > 0 ? $payment->getOrder()->getTaxTotal() / 100 : 0;
         $orderRequest->ipaddr = $this->request->getClientIp();
         $orderRequest->language = $payment->getOrder()->getLocaleCode();
         $orderRequest->notify_url = $this->getNotifyUrl($gatewayConfig);
@@ -143,11 +143,11 @@ final class CreateTransaction
      * @param string $gatewayFactory
      *
      * @param array $gatewayConfig
-     * @return Transaction|AbstractModel
+     * @return Transaction
      *
      * @throws \Exception
      */
-    public function createOney(PaymentInterface $payment, GatewayConfigInterface $gatewayConfig, PaymentSecurityTokenInterface $payumToken)
+    public function createOney(PaymentInterface $payment, GatewayConfigInterface $gatewayConfig, PaymentSecurityTokenInterface $payumToken): Transaction
     {
         $gatewayFactory = $this->getGatewayFactoryName($gatewayConfig);
         $gatewayConfigArray = $gatewayConfig->getConfig();
@@ -191,7 +191,7 @@ final class CreateTransaction
         $orderRequest->currency = $payment->getCurrencyCode();
         $orderRequest->amount = ($payment->getAmount() / 100);
         $orderRequest->shipping = ($payment->getOrder()->getShippingTotal() / 100);
-        $orderRequest->tax = $payment->getOrder()->getTaxTotal();
+        $orderRequest->tax = $payment->getOrder()->getTaxTotal() > 0 ? $payment->getOrder()->getTaxTotal() / 100 : 0;
         $orderRequest->ipaddr = $this->request->getClientIp();
         $orderRequest->language = $payment->getOrder()->getLocaleCode();
         $orderRequest->notify_url = $this->getNotifyUrl($gatewayConfig);
@@ -281,7 +281,6 @@ final class CreateTransaction
         $xTimesCreditCardPaymentMethod->delivery_date = (new \DateTime('+1 week'))->format('Y-m-d');
 
         $orderRequest->paymentMethod = $xTimesCreditCardPaymentMethod;
-        dump($orderRequest);
 
         return $gatewayClient->requestNewOrder($orderRequest);
     }

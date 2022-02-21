@@ -90,6 +90,14 @@ final class CaptureAction implements ActionInterface, GatewayAwareInterface
         ]);
 
         switch ($transaction->getState()) {
+            case TransactionState::COMPLETED:
+                /**
+                 * The payment has been (surprisly) immediately approved
+                 * without any "forward" operation such as 3DS/3x/4x.
+                 * We gently return here and let the StatusAction
+                 * handler doing the rest of logic.
+                 */
+                return;
             case TransactionState::FORWARDING:
             case TransactionState::PENDING:
                 $forwardUrl = $transaction->getForwardUrl();
