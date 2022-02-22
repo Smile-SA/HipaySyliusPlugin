@@ -1,3 +1,8 @@
+[![Total Downloads](https://img.shields.io/packagist/dt/smile/hipay-sylius-plugin.svg?maxAge=86400)](https://packagist.org/packages/smile/hipay-sylius-plugin) [![Latest Stable Version](https://img.shields.io/packagist/v/smile/hipay-sylius-plugin.svg?maxAge=86400)](https://packagist.org/packages/smile/hipay-sylius-plugin) [![License](https://img.shields.io/packagist/l/smile/hipay-sylius-plugin.svg?maxAge=86400)](https://packagist.org/packages/smile/hipay-sylius-plugin) [![Extended Coding Style](https://img.shields.io/badge/ECS-PSR12-orange.svg?maxAge=86400)](https://www.php-fig.org/psr/psr-12/)  [![Symfony Coding Standards](https://img.shields.io/badge/Symfony-Coding_Standards-orange.svg?maxAge=86400)](https://symfony.com/doc/current/contributing/code/standards.html)
+[![Semver compliant](https://img.shields.io/badge/Semver-2.0.0-yellow.svg?maxAge=86400)](https://semver.org/spec/v2.0.0.html) 
+
+
+
 This plugin is designed to add a new gateway on Sylius with Payum to support Hipay payment.
 
 ## Installation 
