@@ -3,7 +3,7 @@
     "description": "A Symfony plugin for Sylius to add payment method Hipay.",
     "keywords": ["symfony", "plugin", "sylius", "hipay", "smile"],
     "type": "symfony-bundle",
-    "license": "MIT",
+    "license": "GPL-3.0",
     "authors": [
         {
             "name": "Smile",
