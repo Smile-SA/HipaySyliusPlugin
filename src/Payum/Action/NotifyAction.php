@@ -17,11 +17,13 @@ use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\GetHttpRequest;
 use Payum\Core\Request\Notify;
+use Smile\HipaySyliusPlugin\Exception\HipayException;
 use Smile\HipaySyliusPlugin\Gateway\GatewayFactoryNameGetterTrait;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney3GatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney4GatewayFactory;
+use Smile\HipaySyliusPlugin\Security\HipaySignatureVerification;
 use Sylius\Component\Core\Model\PaymentInterface;
 
 /**
@@ -33,9 +35,25 @@ final class NotifyAction implements ActionInterface, GatewayAwareInterface
     use GatewayAwareTrait;
     use GatewayFactoryNameGetterTrait;
 
+    protected HipaySignatureVerification $signatureVerification;
+
+    public function __construct(HipaySignatureVerification $signatureVerification)
+    {
+        $this->signatureVerification = $signatureVerification;
+    }
+
     /** @param Notify $request */
     public function execute($request): void
     {
+        /** @var PaymentInterface $payment */
+        $payment = $request->getModel();
+
+        if ($this->signatureVerification->isAnHipayRequest()
+            && !$this->signatureVerification->verifyHttpRequest($payment->getMethod()->getCode())
+        ) {
+            throw new HipayException('Unable to verify the Hipay signature !');
+        }
+
         // Extract POST data
         $getHttpRequest = new GetHttpRequest();
         $this->gateway->execute($getHttpRequest);
@@ -43,8 +61,6 @@ final class NotifyAction implements ActionInterface, GatewayAwareInterface
 
         // Check data => @todo : upgrade this if needed
         if ($payumResponse && isset($payumResponse['state'])) {
-            /** @var PaymentInterface $payment */
-            $payment = $request->getModel();
             $paymentDetails = $payment->getDetails();
             $paymentDetails['hipay_responses'][] = $payumResponse;
             $payment->setDetails($paymentDetails);

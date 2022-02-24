@@ -18,11 +18,13 @@ use Payum\Core\Action\ActionInterface;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\GetHttpRequest;
+use Smile\HipaySyliusPlugin\Exception\HipayException;
 use Smile\HipaySyliusPlugin\Gateway\GatewayFactoryNameGetterTrait;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney3GatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney4GatewayFactory;
+use Smile\HipaySyliusPlugin\Security\HipaySignatureVerification;
 use Sylius\Bundle\PayumBundle\Request\GetStatus;
 use Sylius\Component\Core\Model\PaymentInterface;
 
@@ -36,6 +38,13 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
     use GatewayAwareTrait;
     use GatewayFactoryNameGetterTrait;
 
+    protected HipaySignatureVerification $signatureVerification;
+
+    public function __construct(HipaySignatureVerification $signatureVerification)
+    {
+        $this->signatureVerification = $signatureVerification;
+    }
+
     /**
      * @param GetStatus $request
      */
@@ -43,6 +52,13 @@ final class StatusAction implements ActionInterface, GatewayAwareInterface
     {
         /** @var PaymentInterface $payment */
         $payment = $request->getModel();
+
+        if ($this->signatureVerification->isAnHipayRequest()
+            && !$this->signatureVerification->verifyHttpRequest($payment->getMethod()->getCode())
+        ) {
+            throw new HipayException('Unable to verify the Hipay signature !');
+        }
+
         $paymentDetails = $payment->getDetails();
 
         // Extract GET data (if any)

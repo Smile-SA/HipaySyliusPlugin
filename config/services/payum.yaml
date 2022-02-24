@@ -2,18 +2,22 @@ services:
     _defaults:
         public: true
 
-#    smile_hipay_sylius_plugin.request.get_http_request:
-#        class: Payum\Core\Request\GetHttpRequest
-
+    # Extensions
     Smile\HipaySyliusPlugin\Payum\Extension\ClearPaymentContextExtension:
         class: Smile\HipaySyliusPlugin\Payum\Extension\ClearPaymentContextExtension
         arguments:
             - '@Smile\HipaySyliusPlugin\Context\PaymentContext'
         tags:
-            - { name: payum.extension, all: true, prepend: true }
+            - { name: payum.extension, factory: hipay_card }
+            - { name: payum.extension, factory: hipay_moto_card }
+            - { name: payum.extension, factory: hipay_oney3 }
+            - { name: payum.extension, factory: hipay_oney4 }
 
+    # Actions
     Smile\HipaySyliusPlugin\Payum\Action\StatusAction:
         class: Smile\HipaySyliusPlugin\Payum\Action\StatusAction
+        arguments:
+            - '@Smile\HipaySyliusPlugin\Security\HipaySignatureVerification'
         tags:
             - { name: payum.action, factory: hipay_card, alias: payum.action.status }
             - { name: payum.action, factory: hipay_moto_card, alias: payum.action.status }
@@ -22,6 +26,8 @@ services:
 
     Smile\HipaySyliusPlugin\Payum\Action\NotifyAction:
         class: Smile\HipaySyliusPlugin\Payum\Action\NotifyAction
+        arguments:
+            - '@Smile\HipaySyliusPlugin\Security\HipaySignatureVerification'
         tags:
             - { name: payum.action, factory: hipay_card, alias: payum.action.notify }
             - { name: payum.action, factory: hipay_moto_card, alias: payum.action.notify }
