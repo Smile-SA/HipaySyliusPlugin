@@ -13,40 +13,47 @@ declare(strict_types=1);
 namespace Smile\HipaySyliusPlugin\Payum\Action;
 
 use Payum\Core\Action\ActionInterface;
+use Payum\Core\GatewayAwareInterface;
+use Payum\Core\GatewayAwareTrait;
+use Payum\Core\Request\GetHttpRequest;
+use Payum\Core\Request\Notify;
 use Smile\HipaySyliusPlugin\Gateway\GatewayFactoryNameGetterTrait;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney3GatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney4GatewayFactory;
-use Sylius\Bundle\PayumBundle\Request\ResolveNextRoute;
-use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 
-final class ResolveNextRouteAction implements ActionInterface
+/**
+ * This Action is used to store data in the payment when a notification is received.
+ * The payment status will be updated in the dedicated StatusAction
+ */
+final class NotifyAction implements ActionInterface, GatewayAwareInterface
 {
+    use GatewayAwareTrait;
     use GatewayFactoryNameGetterTrait;
 
-    /** @param ResolveNextRoute $request */
+    /** @param Notify $request */
     public function execute($request): void
     {
-        /** @var PaymentInterface $payment */
-        $payment = $request->getFirstModel();
-        if ($payment->getState() === PaymentInterface::STATE_COMPLETED) {
-            $request->setRouteName('sylius_shop_order_thank_you');
+        // Extract POST data
+        $getHttpRequest = new GetHttpRequest();
+        $this->gateway->execute($getHttpRequest);
+        $payumResponse = $getHttpRequest->request;
 
-            return;
+        // Check data => @todo : upgrade this if needed
+        if ($payumResponse && isset($payumResponse['state'])) {
+            /** @var PaymentInterface $payment */
+            $payment = $request->getModel();
+            $paymentDetails = $payment->getDetails();
+            $paymentDetails['hipay_responses'][] = $payumResponse;
+            $payment->setDetails($paymentDetails);
         }
-
-        /** @var OrderInterface $order */
-        $order = $payment->getOrder();
-
-        $request->setRouteName('sylius_shop_order_show');
-        $request->setRouteParameters(['tokenValue' => $order->getTokenValue()]);
     }
 
     public function supports($request): bool
     {
-        if (!$request instanceof ResolveNextRoute || !$request->getFirstModel() instanceof PaymentInterface) {
+        if (!$request instanceof Notify || !$request->getFirstModel() instanceof PaymentInterface) {
             return false;
         }
 

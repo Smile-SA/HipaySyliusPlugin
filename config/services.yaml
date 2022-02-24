@@ -20,6 +20,7 @@ services:
 imports:
     - { resource: "services/gateway_factory.yaml" }
     - { resource: "services/form.yaml" }
+    - { resource: "services/factory.yaml" }
     - { resource: "services/client.yaml" }
     - { resource: "services/event_subscriber.yaml" }
     - { resource: "services/context.yaml" }

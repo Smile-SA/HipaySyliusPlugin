@@ -2,7 +2,7 @@
   const paymentMethods = document.querySelectorAll('form[name="sylius_checkout_select_payment"] .items > .item');
   const customerProfileIframes = document.querySelectorAll('form[name="sylius_checkout_select_payment"] iframe.hipay-customer-profile');
   let customerProfileValid = false;
-  let nextStepButton = document.querySelector('#next-step');
+  let nextStepButton = document.querySelector('button#_submit');
 
   window.addEventListener('message', (event) => {
     if (window.location.origin === event.origin) {

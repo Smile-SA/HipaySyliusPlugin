@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the HipaySyliusPlugin
  *
@@ -13,13 +14,10 @@ declare(strict_types=1);
 namespace Smile\HipaySyliusPlugin\Gateway;
 
 use Payum\Core\Model\GatewayConfigInterface;
-use Sylius\Component\Customer\Model\CustomerInterface;
-use Symfony\Component\Validator\ConstraintViolationListInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 trait GatewayFactoryNameGetterTrait
 {
-    protected function getGatewayFactoryName(GatewayConfigInterface $gatewayConfig)
+    protected function getGatewayFactoryName(GatewayConfigInterface $gatewayConfig): string
     {
         try {
             /**
@@ -30,6 +28,20 @@ trait GatewayFactoryNameGetterTrait
             return $gatewayConfig->getFactoryName();
         } catch (\Error $e) {
             return $gatewayConfig->getConfig()['factory_name'];
+        }
+    }
+
+    protected function getGatewayName(GatewayConfigInterface $gatewayConfig): string
+    {
+        try {
+            /**
+             * @see GatewayConfigInterface
+             * method getGatewayName()
+             * will be soon removed
+             */
+            return $gatewayConfig->getGatewayName();
+        } catch (\Error $e) {
+            return $gatewayConfig->getConfig()['gateway_name'];
         }
     }
 }

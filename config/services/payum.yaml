@@ -2,28 +2,38 @@ services:
     _defaults:
         public: true
 
-    smile_hipay_sylius_plugin.request.get_http_request:
-        class: Payum\Core\Request\GetHttpRequest
-        
+#    smile_hipay_sylius_plugin.request.get_http_request:
+#        class: Payum\Core\Request\GetHttpRequest
+
+    Smile\HipaySyliusPlugin\Payum\Extension\ClearPaymentContextExtension:
+        class: Smile\HipaySyliusPlugin\Payum\Extension\ClearPaymentContextExtension
+        arguments:
+            - '@Smile\HipaySyliusPlugin\Context\PaymentContext'
+        tags:
+            - { name: payum.extension, all: true, prepend: true }
+
     Smile\HipaySyliusPlugin\Payum\Action\StatusAction:
         class: Smile\HipaySyliusPlugin\Payum\Action\StatusAction
-        arguments:
-            - "@smile_hipay_sylius_plugin.request.get_http_request"
-            - '@Smile\HipaySyliusPlugin\Context\PaymentContext'
-            - '@Smile\HipaySyliusPlugin\Security\HipaySignatureVerification'
-            - '@Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry'
-            - '@sm.factory'
         tags:
             - { name: payum.action, factory: hipay_card, alias: payum.action.status }
             - { name: payum.action, factory: hipay_moto_card, alias: payum.action.status }
             - { name: payum.action, factory: hipay_oney3, alias: payum.action.status }
             - { name: payum.action, factory: hipay_oney4, alias: payum.action.status }
 
+    Smile\HipaySyliusPlugin\Payum\Action\NotifyAction:
+        class: Smile\HipaySyliusPlugin\Payum\Action\NotifyAction
+        tags:
+            - { name: payum.action, factory: hipay_card, alias: payum.action.notify }
+            - { name: payum.action, factory: hipay_moto_card, alias: payum.action.notify }
+            - { name: payum.action, factory: hipay_oney3, alias: payum.action.notify }
+            - { name: payum.action, factory: hipay_oney4, alias: payum.action.notify }
+
     Smile\HipaySyliusPlugin\Payum\Action\CaptureAction:
         class: Smile\HipaySyliusPlugin\Payum\Action\CaptureAction
         arguments:
-            - "@monolog.logger"
             - '@Smile\HipaySyliusPlugin\Api\CreateTransaction'
+            - '@Smile\HipaySyliusPlugin\Factory\NotifyTokenFactory'
+            - "@monolog.logger"
         tags:
             - { name: payum.action, factory: hipay_card, alias: payum.action.capture }
             - { name: payum.action, factory: hipay_moto_card, alias: payum.action.capture }
