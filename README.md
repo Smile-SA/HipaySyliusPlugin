@@ -1,3 +1,11 @@
+## ⚠️ Please read this below beofre using this project ⚠️
+#### ➡️ Due to a lack of time that can be given to this project, it is now abandoned but the "beta" code will stay online to help you integrate an Hipay payment method to your project. Please note that the project is still unstable and may have undiscovered vulnerabilities.
+
+<br/>
+<br/>
+<br/>
+
+##
 [![Total Downloads](https://img.shields.io/packagist/dt/smile/hipay-sylius-plugin.svg?maxAge=86400)](https://packagist.org/packages/smile/hipay-sylius-plugin) [![Latest Stable Version](https://img.shields.io/packagist/v/smile/hipay-sylius-plugin.svg?maxAge=86400)](https://packagist.org/packages/smile/hipay-sylius-plugin) [![License](https://img.shields.io/packagist/l/smile/hipay-sylius-plugin.svg?maxAge=86400)](https://packagist.org/packages/smile/hipay-sylius-plugin) [![Extended Coding Style](https://img.shields.io/badge/ECS-PSR12-orange.svg?maxAge=86400)](https://www.php-fig.org/psr/psr-12/)  [![Symfony Coding Standards](https://img.shields.io/badge/Symfony-Coding_Standards-orange.svg?maxAge=86400)](https://symfony.com/doc/current/contributing/code/standards.html)
 [![Semver compliant](https://img.shields.io/badge/Semver-2.0.0-yellow.svg?maxAge=86400)](https://semver.org/spec/v2.0.0.html) 
 
