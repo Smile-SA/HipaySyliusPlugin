@@ -12,122 +12,90 @@ declare(strict_types=1);
 
 namespace Smile\HipaySyliusPlugin\Payum\Action;
 
-use App\Entity\Payment\PaymentSecurityToken;
 use HiPay\Fullservice\Enum\Transaction\TransactionState;
 use Payum\Core\Action\ActionInterface;
-use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
-use Payum\Core\Model\GatewayConfigInterface;
-use Payum\Core\Reply\HttpPostRedirect;
+use Payum\Core\Reply\HttpRedirect;
 use Payum\Core\Request\Capture;
+use Payum\Core\Security\GenericTokenFactoryAwareInterface;
+use Payum\Core\Security\GenericTokenFactoryAwareTrait;
 use Psr\Log\LoggerInterface;
-use Smile\HipaySyliusPlugin\Api\ApiOneyConfig;
 use Smile\HipaySyliusPlugin\Api\CreateTransaction;
-use Smile\HipaySyliusPlugin\Api\HipayStatus;
-use Smile\HipaySyliusPlugin\Exception\HipayException;
+use Smile\HipaySyliusPlugin\Factory\NotifyTokenFactory;
+use Smile\HipaySyliusPlugin\Gateway\GatewayFactoryNameGetterTrait;
+use Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory;
+use Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney3GatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney4GatewayFactory;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Throwable;
 
-final class CaptureAction implements ActionInterface, GatewayAwareInterface
+final class CaptureAction implements ActionInterface, GatewayAwareInterface, GenericTokenFactoryAwareInterface
 {
     use GatewayAwareTrait;
+    use GenericTokenFactoryAwareTrait;
+    use GatewayFactoryNameGetterTrait;
 
-    private LoggerInterface $logger;
     private CreateTransaction $createTransaction;
+    private NotifyTokenFactory $notifyTokenFactory;
+    private LoggerInterface $logger;
 
-    public function __construct(LoggerInterface $logger, CreateTransaction $createTransaction)
-    {
-        $this->logger = $logger;
+    public function __construct(
+        CreateTransaction $createTransaction,
+        NotifyTokenFactory $notifyTokenFactory,
+        LoggerInterface $logger
+    ) {
         $this->createTransaction = $createTransaction;
+        $this->notifyTokenFactory = $notifyTokenFactory;
+        $this->logger = $logger;
     }
 
+    /**
+     * @var Capture $request
+     */
     public function execute($request): void
     {
-        RequestNotSupportedException::assertSupports($this, $request);
-
-        /** @var Capture $request */
         /** @var PaymentInterface $payment */
         $payment = $request->getModel();
-        /** @var PaymentMethodInterface $paymentMethod */
-        $paymentMethod = $payment->getMethod();
-        $gatewayConfig = $paymentMethod->getGatewayConfig();
-
-        /** @var PaymentSecurityToken $token */
-        $token = $request->getToken();
-        $gateway = $token->getGatewayName();
-
-        try{
-            /**
-             * @see GatewayConfigInterface
-             * method getFactoryName()
-             * will be soon removed
-             */
-            $gatewayfactory = $gatewayConfig->getFactoryName();
-        } catch (\Error $e){
-            $gatewayfactory = $gatewayConfig->getConfig()['factory_name'];
-        }
 
         try {
-            if ($gatewayfactory === HipayOney3GatewayFactory::FACTORY_NAME || $gatewayfactory === HipayOney4GatewayFactory::FACTORY_NAME) {
-                $transaction = $this->createTransaction->createOney($payment, $gatewayConfig, $token);
-            } else {
-                $transaction = $this->createTransaction->create($payment, $gatewayConfig, $token);
-            }
-        } catch (\Throwable $exception) {
+            $transaction = $this->createTransaction->create(
+                $payment,
+                $request->getToken(),
+                $this->notifyTokenFactory->getNotifyToken($payment, $this->tokenFactory)
+            );
+        } catch (Throwable $exception) {
             // @todo Handle code 3010004 => Duplicate order
-            $this->logErrors($exception->getMessage());
+            $this->logger->error($exception->getMessage());
             return;
         }
 
-        $payment->setDetails([
-            'status' => $transaction->getStatus(),
-            'hipay_order_id' => $transaction->getMid(),
-            'transaction_id' => $transaction->getTransactionReference(),
-            'payum_token' => $token->getHash(),
-        ]);
+        $paymentDetails = $payment->getDetails();
+        $paymentDetails['hipay_responses'][] = $transaction->toArray();
+        $payment->setDetails($paymentDetails);
 
-        switch ($transaction->getState()) {
-            case TransactionState::COMPLETED:
-                /**
-                 * The payment has been (surprisly) immediately approved
-                 * without any "forward" operation such as 3DS/3x/4x.
-                 * We gently return here and let the StatusAction
-                 * handler doing the rest of logic.
-                 */
-                return;
-            case TransactionState::FORWARDING:
-            case TransactionState::PENDING:
-                $forwardUrl = $transaction->getForwardUrl();
-                if($forwardUrl){
-                    throw new HttpPostRedirect($forwardUrl);
-                }else{
-                    throw new HipayException('Expected a forward to not be empty !');
-                }
-
-            case TransactionState::ERROR:
-            case TransactionState::DECLINED:
-                $reason = $transaction->getReason();
-                $this->logErrors('There was an error requesting new transaction: ' . $reason['message']);
-
-                break;
-            default:
-                throw new HipayException('An error occured, process has been cancelled.');
+        // Check if we need to force the redirection to a third party url
+        if (TransactionState::FORWARDING === $transaction->getState()) {
+            throw new HttpRedirect($transaction->getForwardUrl());
         }
+
     }
 
     public function supports($request): bool
     {
-        return
-            $request instanceof Capture &&
-            $request->getModel() instanceof PaymentInterface
-        ;
-    }
+        if (!$request instanceof Capture || !$request->getFirstModel() instanceof PaymentInterface) {
+            return false;
+        }
 
-    private function logErrors(string $message): void
-    {
-        $this->logger->error($message);
+        return in_array(
+            $this->getGatewayFactoryName($request->getModel()->getMethod()->getGatewayConfig()),
+            [
+                HipayCardGatewayFactory::FACTORY_NAME,
+                HipayMotoCardGatewayFactory::FACTORY_NAME,
+                HipayOney3GatewayFactory::FACTORY_NAME,
+                HipayOney4GatewayFactory::FACTORY_NAME,
+            ]
+        );
     }
 }

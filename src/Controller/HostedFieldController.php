@@ -12,38 +12,34 @@ declare(strict_types=1);
 
 namespace Smile\HipaySyliusPlugin\Controller;
 
-use Smile\HipaySyliusPlugin\Form\Type\HipayOneyRequiredFieldsType;
+use InvalidArgumentException;
 use Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry;
-use Sylius\Component\Channel\Context\ChannelContextInterface;
-use Sylius\Component\Locale\Context\LocaleContextInterface;
-use Sylius\PayPalPlugin\Processor\LocaleProcessorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 final class HostedFieldController extends AbstractController
 {
     private Environment $twig;
-    private ChannelContextInterface $channelContext;
-    private LocaleContextInterface $localeContext;
-    private LocaleProcessorInterface $localeProcessor;
     private ApiCredentialRegistry $apiCredentialRegistry;
 
     public function __construct(
         Environment $twig,
-        ChannelContextInterface $channelContext,
-        LocaleContextInterface $localeContext,
-        LocaleProcessorInterface $localeProcessor,
         ApiCredentialRegistry $apiCredentialRegistry
     ) {
         $this->twig = $twig;
-        $this->channelContext = $channelContext;
-        $this->localeContext = $localeContext;
-        $this->localeProcessor = $localeProcessor;
         $this->apiCredentialRegistry = $apiCredentialRegistry;
     }
 
+    /**
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
     public function renderHostedFieldsAction(Request $request): Response
     {
         $gateway = $request->attributes->get('gateway') ?? null;
@@ -57,7 +53,6 @@ final class HostedFieldController extends AbstractController
                 $this->twig->render(
                     '@SmileHipaySyliusPlugin/Checkout/hipay_hosted_fields.html.twig',
                     [
-                        'locale' => $this->localeProcessor->process($this->localeContext->getLocaleCode()),
                         'gateway' => $gateway,
                         'apiConfig' => [
                             'username' => $config->getUsername(),
@@ -68,7 +63,7 @@ final class HostedFieldController extends AbstractController
                     ]
                 )
             );
-        } catch (\InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException $exception) {
             return new Response('');
         }
     }

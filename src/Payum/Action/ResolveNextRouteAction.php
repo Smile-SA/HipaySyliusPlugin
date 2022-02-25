@@ -13,18 +13,19 @@ declare(strict_types=1);
 namespace Smile\HipaySyliusPlugin\Payum\Action;
 
 use Payum\Core\Action\ActionInterface;
+use Smile\HipaySyliusPlugin\Gateway\GatewayFactoryNameGetterTrait;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayMotoCardGatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney3GatewayFactory;
 use Smile\HipaySyliusPlugin\Payum\Factory\HipayOney4GatewayFactory;
-use Sylius\Bundle\PayumBundle\Model\GatewayConfigInterface;
 use Sylius\Bundle\PayumBundle\Request\ResolveNextRoute;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class ResolveNextRouteAction implements ActionInterface
 {
+    use GatewayFactoryNameGetterTrait;
+
     /** @param ResolveNextRoute $request */
     public function execute($request): void
     {
@@ -43,32 +44,14 @@ final class ResolveNextRouteAction implements ActionInterface
         $request->setRouteParameters(['tokenValue' => $order->getTokenValue()]);
     }
 
-    public function supports($request)
+    public function supports($request): bool
     {
-        if (
-            !$request instanceof ResolveNextRoute ||
-            !$request->getFirstModel() instanceof PaymentInterface
-        ) {
+        if (!$request instanceof ResolveNextRoute || !$request->getFirstModel() instanceof PaymentInterface) {
             return false;
         }
 
-        /** @var PaymentInterface $model */
-        $model = $request->getFirstModel();
-        /** @var PaymentMethodInterface $paymentMethod */
-        $paymentMethod = $model->getMethod();
-        try{
-            /**
-             * @see GatewayConfigInterface
-             * method getFactoryName()
-             * will be soon removed
-             */
-            $gatewayfactory = $paymentMethod->getGatewayConfig()->getFactoryName();
-        } catch (\Error $e){
-            $gatewayfactory = $paymentMethod->getGatewayConfig()->getConfig()['factory_name'];
-        }
-
         return in_array(
-            $gatewayfactory,
+            $this->getGatewayFactoryName($request->getModel()->getMethod()->getGatewayConfig()),
             [
                 HipayCardGatewayFactory::FACTORY_NAME,
                 HipayMotoCardGatewayFactory::FACTORY_NAME,

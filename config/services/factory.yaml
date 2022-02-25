@@ -1,0 +1,9 @@
+services:
+    _defaults:
+        public: true
+
+    Smile\HipaySyliusPlugin\Factory\NotifyTokenFactory:
+        class: Smile\HipaySyliusPlugin\Factory\NotifyTokenFactory
+        arguments:
+            - '@Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry'
+            - '@router'

@@ -12,11 +12,6 @@ declare(strict_types=1);
 
 namespace Smile\HipaySyliusPlugin\Controller;
 
-use Smile\HipaySyliusPlugin\Form\Type\HipayOneyRequiredFieldsType;
-use Smile\HipaySyliusPlugin\Registry\ApiCredentialRegistry;
-use Sylius\Component\Channel\Context\ChannelContextInterface;
-use Sylius\Component\Locale\Context\LocaleContextInterface;
-use Sylius\PayPalPlugin\Processor\LocaleProcessorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
